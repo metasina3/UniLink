@@ -1,5 +1,7 @@
 # UniLink 1.2.1
 
+[دانلود نسخهٔ ویندوز و سورس](https://github.com/metasina3/UniLink/releases) · [راهنمای فارسی آفلاین](docs/README_FA.html)
+
 A dark blue interface that fits the working area of your display. Pages and dialogs use compact layouts without outer page scrolling. Replace the old executable after exiting it; the existing account file and settings format are unchanged.
 
 A portable Windows desktop client for Sophos/Cyberoam university captive portals.
@@ -55,8 +57,8 @@ It includes an actual local HTTPS server with self-signed certificates, checking
 
 ## Scope of verification
 
-The x64 binary was cross-built, and the protocol/state-machine tests ran in Linux.
-The user confirmed that version 1.0 works on Windows and UUWN. Version 1.2.1 retains the 1.2 layout and adds verified base-adapter selection, interface-scoped Windows DNS and recognition of the university exhaustion message for both new and existing settings. The new layout was rendered and checked with a Mono WinForms compatibility harness in Linux: 39 views at each of 100%, 125%, 150% and 200% (156 checks, zero layout failures); this is not execution of the Windows binary. Windows-specific DPI behavior remains a target-platform check.
+Native Windows CI now builds the x64 binary: **49 tests passed and 39 real WinForms views passed layout checks**. [Verification run](https://github.com/metasina3/UniLink/actions/runs/39115228489). Earlier Linux verification passed 46 tests.
+The user confirmed that version 1.0 works on Windows and UUWN. Version 1.2.1 retains the compact 1.2 layout, measures heading heights using native font metrics, and adds verified base-adapter selection, interface-scoped Windows DNS and recognition of the university exhaustion message for both new and existing settings. The new layout was rendered and checked with a Mono WinForms compatibility harness in Linux: 39 views at each of 100%, 125%, 150% and 200% (156 checks, zero layout failures); this is not execution of the Windows binary. The additional native Windows run covers 39 views at 96 DPI; physical multi-monitor DPI transitions and a real campus VPN/kill-switch configuration still require field verification.
 The supplied HAR contained successful login/keepalive. The later university log supplied the exact exhaustion phrase now covered by regression tests and built-in detection. Other provider-specific quota phrases remain configurable.
 
 This release implements the Sophos/Cyberoam credential web-client protocol. Changing a URL does not add support for unrelated portal protocols, SSO, OTP/MFA or CAPTCHA.

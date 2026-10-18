@@ -1,4 +1,8 @@
-# UI verification — 1.2.0
+# UI verification — 1.2.1
+
+Native Windows Server 2025, 96 DPI: **39 views inspected, 0 layout failures**. [CI run](https://github.com/metasina3/UniLink/actions/runs/39115228489). Summary: windows-ui-results.txt. The final heading layout uses TextRenderer font measurements rather than a fixed 28-pixel height. All five pages, compact states, account editors, group tabs and certificate dialogs were checked with real Windows controls. Physical multi-monitor DPI transitions remain a field check.
+
+## Earlier 1.2.0 compatibility checks
 
 39 views were rendered and inspected at each of 96, 120, 144 and 192 logical DPI (100%, 125%, 150%, 200%): 156 views and zero layout failures. Screenshots were reviewed, including the compact 640x300 client area at 200%.
 
@@ -21,8 +25,8 @@ Native Windows inspection remains available with:
 
 This offline mode uses synthetic accounts and does not read saved credentials, register startup or contact a portal. It writes screenshots and a geometry report using real Windows controls.
 
-All 37 core tests passed. All source files in UniLink.Core, WindowsServices.cs and the core test source remain byte-for-byte unchanged from 1.1.0. User settings stay at the same path and retain their existing encryption and format.
+In the earlier 1.2.0 build, all 37 core tests passed and the networking code was unchanged from 1.1.0. Version 1.2.1 now passes 49 native Windows core tests. User settings stay at the same path and retain their existing encryption and format.
 
 Implementation references: [Microsoft — automatic scaling](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/forms/autoscale) and [RichTextBox scrollbars](https://learn.microsoft.com/en-us/dotnet/desktop/winforms/controls/how-to-display-scroll-bars-in-the-windows-forms-richtextbox-control).
 
-Version 1.2.1 retains this layout; only the displayed version label changed. Network changes are documented in NETWORK_BEHAVIOR.md.
+Version 1.2.1 retains the compact layout and measures page/dialog heading heights using the native Windows font. Network changes are documented in NETWORK_BEHAVIOR.md.

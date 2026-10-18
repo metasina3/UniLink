@@ -1,0 +1,2 @@
+39 native WinForms views inspected; 0 layout failures.
+Windows Server 2025, 96 DPI; https://github.com/metasina3/UniLink/actions/runs/39115228489

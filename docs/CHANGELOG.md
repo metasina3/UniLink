@@ -6,7 +6,8 @@
 - Recognize the exact university data-transfer-exceeded message in negative login and keepalive replies, including old settings.
 - Keep sequential account order, monthly reset and encrypted settings compatibility.
 - Add regression tests, network documentation and a Windows build/release workflow.
-- Retain the compact 1.2 UI.
+- Retain the compact 1.2 UI; measure page/dialog heading heights with native Windows font metrics.
+- Load the synthetic TLS test server certificate through PKCS#12 for Windows Schannel.
 
 # 1.2.0
 
