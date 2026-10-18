@@ -24,8 +24,9 @@ internal sealed class PageSurface : Panel
     {
         base.OnLayout(e); if (_title is null) return;
         int P(int n) => Theme.Px(this, n); var compact = Height < P(400); var p = P(16); var w = Math.Max(0, ClientSize.Width - p * 2);
-        _title.SetBounds(p, P(8), w, P(28)); _subtitle.Visible = !compact;
-        _subtitle.SetBounds(p, P(38), w, P(22)); var top = P(compact ? 44 : 70);
+        var titleHeight = Theme.LineHeight(_title, 28); var extra = titleHeight - P(28);
+        _title.SetBounds(p, P(8), w, titleHeight); _subtitle.Visible = !compact;
+        _subtitle.SetBounds(p, P(38) + extra, w, P(22)); var top = P(compact ? 44 : 70) + extra;
         Body.SetBounds(p, top, w, Math.Max(0, ClientSize.Height - top - P(12)));
     }
 }

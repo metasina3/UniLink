@@ -16,6 +16,8 @@ internal static class Theme
     public static readonly Color Green = Color.FromArgb(111, 212, 167);
     public static readonly Color Red = Color.FromArgb(245, 147, 153);
     public static int Px(Control control, int value) => (int)Math.Round(value * control.DeviceDpi / 96d);
+    public static int LineHeight(Control control, int minimum) => Math.Max(Px(control, minimum),
+        TextRenderer.MeasureText(control.Text, control.Font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix).Height);
 
     public static Label Label(string text, float size = 9.5f, bool bold = false) => new()
     {

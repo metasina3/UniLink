@@ -26,8 +26,9 @@ internal class EditorWindow : AdaptiveForm
     {
         base.OnLayout(e); if (_heading is null) return;
         int P(int n) => Theme.Px(this, n); var p = P(16); var compact = ClientSize.Height < P(360); var tiny = ClientSize.Height < P(330); var top = P(tiny ? 36 : compact ? 46 : 66); var footerH = P(tiny ? 48 : 52);
-        _heading.SetBounds(p, P(tiny ? 3 : 8), Math.Max(0, ClientSize.Width - p * 2), P(28));
-        _note.Visible = !compact; _note.SetBounds(p, P(38), Math.Max(0, ClientSize.Width - p * 2), P(22));
+        var titleHeight = Theme.LineHeight(_heading, 28); var extra = titleHeight - P(28); top += extra;
+        _heading.SetBounds(p, P(tiny ? 3 : 8), Math.Max(0, ClientSize.Width - p * 2), titleHeight);
+        _note.Visible = !compact; _note.SetBounds(p, P(38) + extra, Math.Max(0, ClientSize.Width - p * 2), P(22));
         Body.SetBounds(0, top, ClientSize.Width, Math.Max(0, ClientSize.Height - top - footerH));
         _footer?.SetBounds(0, ClientSize.Height - footerH, ClientSize.Width, footerH);
     }
