@@ -481,7 +481,10 @@ internal static class Program
         public MockPortal()
         {
             using var key = RSA.Create(2048); var request = new CertificateRequest("CN=UniLink-Test", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            _cert = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(2));
+            using var generated = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(2));
+            // Windows Schannel requires a named private key for the synthetic TLS server.
+            // Import through PKCS#12 without EphemeralKeySet; Dispose removes the temporary key.
+            _cert = new X509Certificate2(generated.Export(X509ContentType.Pfx));
             _listener.Start(); Url = "https://127.0.0.1:" + ((IPEndPoint)_listener.LocalEndpoint).Port + "/";
             _loop = Task.Run(async () =>
             {
