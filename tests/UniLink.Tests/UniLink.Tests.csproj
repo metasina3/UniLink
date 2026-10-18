@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/UniLink.Core/UniLink.Core.csproj" /></ItemGroup>
+  <ItemGroup><Compile Include="../../src/UniLink.Windows/PhysicalNetworkInterface.cs" Link="PhysicalNetworkInterface.cs" /></ItemGroup>
+</Project>

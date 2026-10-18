@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+release/
+artifacts/
+.vs/
+*.user
+*.suo
+*.pdb
+*.dpapi
+*.dpapi.*
+*.har
+*.log
+.env
+.env.*

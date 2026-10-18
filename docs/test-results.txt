@@ -1,0 +1,48 @@
+PASS exact university exhaustion message works with existing custom settings
+PASS university quota reply advances sequentially through saved accounts
+PASS university quota on keepalive switches accounts without a 300-second delay
+PASS physical Wi-Fi and Ethernet are accepted; Ethernet-like VPNs and filters are rejected
+PASS native adapter and DNS layouts match the Windows x64 ABI
+PASS literal portal address bypasses DNS and canceled lookups stop before resolution
+PASS scoped DNS record reader ignores CNAMEs and deduplicates IPv4 answers
+PASS HAR login LIVE and live ack are parsed
+PASS quota, wrong password, challenge and unknown remain distinct
+PASS malformed XML, HTML, foreign root and DTD cannot authenticate
+PASS default first, then ordered fallback, never parallel
+PASS heartbeat follows the 180-second interval
+PASS network failures do not consume or rotate accounts
+PASS ambiguous errors use bounded backoff on the same account
+PASS all exhausted accounts wait without repeated logins
+PASS monthly reset uses Tehran midnight and returns to default
+PASS delayed reset job on day 1 is rechecked hourly
+PASS ordinary mid-month exhaustion is not polled hourly
+PASS offline restart resets old quota but never rejected credentials
+PASS clock rollback does not release a future quota block
+PASS quota blocks survive a restart
+PASS SSID matching is exact and case sensitive
+PASS matching Wi-Fi interface is selected even with Ethernet present
+PASS network change reconnects without marking quota
+PASS pause signs out and manual resume still works with auto-connect disabled
+PASS live nack retries the same account, while quota moves on
+PASS live_off suppresses unnecessary heartbeats
+PASS automatic fallback can be disabled
+PASS explicit account selection overrides automatic-fallback preference
+PASS cosmetic settings edits preserve an active connection
+PASS backwards clock adjustment triggers a prompt heartbeat
+PASS manual group override ends after leaving the network
+PASS portal-only mode requires a pin before automatic probing
+PASS certificate approval blocks credential submission until approved
+PASS editing during activity preserves new quota state
+PASS one in-flight login even when timer ticks overlap
+PASS failed state persistence pauses instead of silently resetting
+PASS shared templates omit credentials, runtime and server pins
+PASS diagnostics redact raw and URL-encoded credentials
+PASS HTTP and credential-bearing portal URLs are rejected
+PASS real TLS transport sends exact Sophos form and keepalive fields
+PASS a removed or unverified base adapter fails before any HTTP credentials are sent
+PASS real HTTPS bypasses the system proxy and uses the selected local source address
+PASS untrusted and changed TLS certificates send zero HTTP credentials
+PASS portal redirects are rejected without a second request
+PASS unrecognized page and oversized body fail safely
+
+46 passed; 0 failed.

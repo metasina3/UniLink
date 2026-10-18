@@ -1,0 +1,5 @@
+Microsoft.Windows.SDK.NET.Ref 10.0.19041.56
+Windows SDK .NET projection and WinRT runtime, distributed for use on Windows.
+Copyright Microsoft Corporation. All rights reserved.
+Windows SDK license: https://aka.ms/WinSDKLicenseURL
+C#/WinRT project: https://github.com/microsoft/CsWinRT

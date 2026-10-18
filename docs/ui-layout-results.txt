@@ -1,0 +1,11 @@
+96 DPI
+39 WinForms compatibility views inspected; 0 layout failures.
+
+120 DPI
+39 WinForms compatibility views inspected; 0 layout failures.
+
+144 DPI
+39 WinForms compatibility views inspected; 0 layout failures.
+
+192 DPI
+39 WinForms compatibility views inspected; 0 layout failures.

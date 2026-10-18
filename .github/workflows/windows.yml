@@ -1,0 +1,86 @@
+name: Windows build and release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '8.0.426'
+      - name: Test and publish Windows x64
+        shell: pwsh
+        run: ./build.ps1 -Runtime win-x64
+      - name: Inspect native Windows UI with synthetic data
+        shell: pwsh
+        run: |
+          $ui = Join-Path $PWD 'artifacts/ui-checks'
+          New-Item -ItemType Directory -Force $ui | Out-Null
+          $exe = Join-Path $PWD 'release/win-x64/UniLink.exe'
+          $process = Start-Process -FilePath $exe -ArgumentList @('--ui-check', ('"' + $ui + '"')) -Wait -PassThru
+          Get-ChildItem $ui -Filter '*.txt' | Get-Content
+          if ($process.ExitCode -ne 0) { throw "UI checks failed: $($process.ExitCode)" }
+      - name: Package executable and exact source
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+          if ('${{ github.event_name }}' -eq 'release' -and $env:RELEASE_TAG -ne "v$version") { throw 'Release tag does not match source version.' }
+          Get-ChildItem release/win-x64 -Filter '*.pdb' | Remove-Item
+          Compress-Archive -Path release/win-x64/* -DestinationPath "artifacts/UniLink-$version-Windows-x64.zip" -Force
+          git archive --format=zip --prefix=UniLink/ --output="artifacts/UniLink-$version-Source.zip" HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Source archive failed.' }
+          $sums = Get-ChildItem artifacts -Filter '*.zip' | Sort-Object Name | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
+          Set-Content -LiteralPath artifacts/SHA256SUMS.txt -Value $sums -Encoding ascii
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+      - name: Keep UI report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-ui-checks
+          path: artifacts/ui-checks/
+          retention-days: 7
+      - name: Keep release packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-packages
+          path: |
+            artifacts/*.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  attach-release:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-packages
+          path: packages
+      - name: Attach tested packages to the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" packages/*.zip packages/SHA256SUMS.txt
