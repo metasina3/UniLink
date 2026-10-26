@@ -132,6 +132,11 @@ class UniLinkApp(rumps.App if HAS_RUMPS else object):
         else:
             self.title = "●" if status == "online" else "○"
 
+    def _reset_submenu(self, item: rumps.MenuItem) -> None:
+        if getattr(item, "_menu", None) is None:
+            item.add(rumps.MenuItem("..."))
+        item.clear()
+
     def refresh_menu(self):
         snap = self.watcher.snapshot()
         st = snap.get("status", "idle")
@@ -157,7 +162,7 @@ class UniLinkApp(rumps.App if HAS_RUMPS else object):
         self.item_toggle.state = 1 if self.store.get("auto_connect", True) else 0
 
         # Accounts list
-        self.accounts_menu.clear()
+        self._reset_submenu(self.accounts_menu)
         accs = self.store.accounts
         if not accs:
             self.accounts_menu.add(rumps.MenuItem("هیچ حسابی افزوده نشده"))
