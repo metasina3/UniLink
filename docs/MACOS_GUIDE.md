@@ -19,8 +19,15 @@ UniLink for macOS is a native captive-portal client for Cyberoam / Sophos univer
 
 ## Installation & Running
 
-### Option 1: Build the Self-Contained `.app` Bundle
-To build `~/Applications/UniLink.app` (includes its own embedded Python virtualenv):
+### Option 1: Native Swift Build (Recommended)
+Compile the 100% native Apple Silicon Mach-O binary directly using Swift:
+```bash
+./src/UniLink.macOS/build-swift.sh
+open ~/Applications/UniLink.app
+```
+Zero Python or external runtime dependencies. Runs directly as an `NSStatusItem` in the macOS menu bar.
+
+### Option 2: Python / Virtualenv Bundle
 ```bash
 python3 src/UniLink.macOS/install.py build
 open ~/Applications/UniLink.app

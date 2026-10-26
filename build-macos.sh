@@ -4,8 +4,8 @@ set -e
 echo "==> Running UniLink macOS tests..."
 python3 -m unittest discover tests/UniLink.macOS.Tests
 
-echo "==> Building UniLink.app bundle..."
-python3 src/UniLink.macOS/install.py build
+echo "==> Building native Swift UniLink.app bundle..."
+./src/UniLink.macOS/build-swift.sh
 
 mkdir -p artifacts
 echo "==> Packaging macOS Release ZIP..."
