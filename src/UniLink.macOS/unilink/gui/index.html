@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniLink — کنترل پنل اینترنت دانشگاه ارومیه</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 30, 49, 0.72);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(30, 41, 67, 0.85);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.2);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.2);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.2);
+      --sidebar-w: 220px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Vazirmatn", "IRANSans", "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* macOS Window Drag Area */
+    .titlebar-drag {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 38px;
+      -webkit-app-region: drag;
+      z-index: 1000;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: rgba(15, 23, 42, 0.65);
+      border-left: 1px solid var(--card-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      padding: 48px 14px 20px 14px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px 24px 8px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 20px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 9px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .nav-item.active {
+      background: var(--primary-glow);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .sidebar-footer {
+      padding: 14px 10px 4px 10px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .live-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+
+    .pulse-dot.online {
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    .pulse-dot.campus {
+      background: var(--amber);
+      box-shadow: 0 0 10px var(--amber);
+    }
+
+    .pulse-dot.logging-in {
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+      animation: pulse 0.8s infinite;
+    }
+
+    .pulse-dot.failed {
+      background: var(--rose);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 44px 28px 24px 28px;
+      position: relative;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glass Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      margin-bottom: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Hero Status Banner */
+    .hero-card {
+      padding: 24px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      border-width: 1.5px;
+    }
+
+    .hero-card.online {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(22, 30, 49, 0.8));
+    }
+
+    .hero-card.campus {
+      border-color: rgba(245, 158, 11, 0.35);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(22, 30, 49, 0.8));
+    }
+
+    .hero-card.failed {
+      border-color: rgba(244, 63, 94, 0.35);
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.12), rgba(22, 30, 49, 0.8));
+    }
+
+    .hero-info {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .hero-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-icon-box svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .hero-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s ease;
+      outline: none;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: var(--emerald);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--emerald-glow);
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(244, 63, 94, 0.25);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn-icon {
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+    }
+
+    /* Grid Stats */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .stat-header svg {
+      width: 16px;
+      height: 16px;
+      opacity: 0.7;
+    }
+
+    .stat-val {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      direction: ltr;
+      text-align: right;
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Accounts Tab */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .accounts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .account-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+
+    .account-card.active {
+      border-color: rgba(59, 130, 246, 0.4);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), var(--card-bg));
+    }
+
+    .account-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .account-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #93c5fd;
+    }
+
+    .account-name {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .active-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 500;
+    }
+
+    .account-user {
+      font-size: 12px;
+      color: var(--text-muted);
+      direction: ltr;
+      text-align: right;
+    }
+
+    .account-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.18s ease;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .input-with-icon {
+      position: relative;
+    }
+
+    .input-with-icon input {
+      padding-left: 40px;
+    }
+
+    .input-icon-btn {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-icon-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* Switch */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .toggle-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .toggle-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.12);
+      transition: .25s;
+      border-radius: 24px;
+      border: 1px solid var(--card-border);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      right: 3px;
+      bottom: 2px;
+      background-color: #cbd5e1;
+      transition: .25s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(-20px);
+      background-color: #ffffff;
+    }
+
+    /* Console / Logs */
+    .console-box {
+      background: #050811;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #94a3b8;
+      height: 420px;
+      overflow-y: auto;
+      direction: ltr;
+      text-align: left;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .log-line {
+      margin-bottom: 6px;
+      line-height: 1.5;
+      display: flex;
+      gap: 8px;
+    }
+
+    .log-time {
+      color: #475569;
+      flex-shrink: 0;
+    }
+
+    .log-tag {
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .log-tag.net { color: #38bdf8; }
+    .log-tag.ok { color: #34d399; }
+    .log-tag.warn { color: #fbbf24; }
+    .log-tag.err { color: #f87171; }
+    .log-tag.sys { color: #a78bfa; }
+
+    .log-msg {
+      color: #e2e8f0;
+      word-break: break-word;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      width: 440px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+      transition: all 0.2s ease;
+    }
+
+    .modal-backdrop.open .modal {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 3000;
+    }
+
+    .toast {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--text-main);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.25s ease-out;
+    }
+
+    .toast.success { border-color: rgba(16, 185, 129, 0.4); color: #34d399; }
+    .toast.error { border-color: rgba(244, 63, 94, 0.4); color: #fb7185; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Rotating animation for refresh */
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="titlebar-drag"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 13a10 10 0 0 1 14 0"/>
+          <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+          <path d="M2 8.82a15 15 0 0 1 20 0"/>
+          <circle cx="12" cy="20" r="1.5" fill="#ffffff"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">UniLink</div>
+        <div class="brand-sub">دانشگاه ارومیه</div>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <div class="nav-item active" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1"/>
+          <rect x="14" y="3" width="7" height="5" rx="1"/>
+          <rect x="14" y="12" width="7" height="9" rx="1"/>
+          <rect x="3" y="16" width="7" height="5" rx="1"/>
+        </svg>
+        داشبورد وضعیت
+      </div>
+
+      <div class="nav-item" onclick="switchTab('accounts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        حساب‌های دانشجویی
+      </div>
+
+      <div class="nav-item" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        تنظیمات اتصال
+      </div>
+
+      <div class="nav-item" onclick="switchTab('logs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 17 10 11 4 5"/>
+          <line x1="12" y1="19" x2="20" y2="19"/>
+        </svg>
+        کنسول و گزارش
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="live-status-pill">
+        <div class="pulse-dot" id="sidebarDot"></div>
+        <span id="sidebarStatusText">در حال بررسی شبکه…</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main class="main">
+
+    <!-- 1. DASHBOARD TAB -->
+    <section id="tab-dashboard" class="tab-content active">
+      
+      <!-- Hero Status Card -->
+      <div class="card hero-card" id="heroCard">
+        <div class="hero-info">
+          <div class="hero-icon-box" id="heroIconBox">
+            <svg id="heroIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 13a10 10 0 0 1 14 0"/>
+              <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+              <circle cx="12" cy="20" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
+          <div>
+            <div class="hero-title" id="heroTitle">آماده اتصال</div>
+            <div class="hero-desc" id="heroDesc">منتظر اتصال به شبکه دانشگاه ارومیه</div>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="btnHeroAction" onclick="handleHeroAction()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            ورود به اینترنت
+          </button>
+          <button class="btn btn-secondary btn-icon" title="بررسی مجدد" onclick="recheckNetwork()">
+            <svg id="recheckIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Network Details Grid -->
+      <div class="grid-4">
+        <div class="stat-box">
+          <div class="stat-header">
+            <span>شبکه Wi-Fi</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1.5"/></svg>
+          </div>
+          <div class="stat-val" id="statSsid">—</div>
+          <div class="stat-sub" id="statCampusStatus">تشخیص Wi-Fi</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-header">
+            <span>آدرس IP سیستم</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <div class="stat-val" id="statIp">—</div>
+          <div class="stat-sub">کارت شبکه محلی</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-header">
+            <span>حساب فعال</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="stat-val" id="statActiveAccount">—</div>
+          <div class="stat-sub" id="statActiveUser">—</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-header">
+            <span>گیت دانشگاه</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="stat-val">gate1.urmia</div>
+          <div class="stat-sub">پورت 8090 (Cyberoam)</div>
+        </div>
+      </div>
+
+      <!-- Live Event Box -->
+      <div class="card">
+        <div class="section-header">
+          <div class="section-title">آخرین وضعیت دریافتی از پورتال</div>
+          <button class="btn btn-secondary btn-sm" onclick="probeGate()">تست ارتباط با گیت</button>
+        </div>
+        <div id="latestPortalMsg" style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+          هنوز درخواستی ارسال نشده است.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2. ACCOUNTS TAB -->
+    <section id="tab-accounts" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">حساب‌های دانشجویی ثبت شده</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+            می‌توانید چند حساب مختلف اضافه کنید. در صورت رد شدن یک حساب، سامانه خودکار بعدی را امتحان می‌کند.
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddAccountModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          افزودن حساب
+        </button>
+      </div>
+
+      <div class="accounts-list" id="accountsList">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 3. SETTINGS TAB -->
+    <section id="tab-settings" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">تنظیمات اتصال و خودکارسازی</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+            پیکربندی هوشمند تشخیص شبکه و رفتار سامانه در پس‌زمینه
+          </div>
+        </div>
+        <button class="btn btn-success" onclick="saveSettings()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+          ذخیره تنظیمات
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <div class="toggle-title">ورود خودکار به اینترنت (Auto-Login)</div>
+            <div class="toggle-desc">به‌محض اتصال مک به شبکه دانشگاه، ورود به‌صورت نامحسوس انجام شود</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="set_auto_login" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <div class="toggle-title">سوئیچ خودکار در صورت خطا (Failover)</div>
+            <div class="toggle-desc">اگر حساب فعال منقضی یا حجم آن تمام شده بود، حساب‌های بعدی آزمایش شوند</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="set_failover" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-text">
+            <div class="toggle-title">اجرای خودکار هنگام بالا آمدن سیستم (Launch at Login)</div>
+            <div class="toggle-desc">سرویس UniLink در پس‌زمینه با روشن شدن سیستم فعال بماند</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="set_autostart">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">بازه زمانی بررسی شبکه (ثانیه)</label>
+            <input type="number" class="form-input" id="set_check_interval" value="20" min="5" max="300">
+          </div>
+          <div class="form-group">
+            <label class="form-label">بازه زمانی زنده نگه‌داشتن نشست / Keepalive (ثانیه)</label>
+            <input type="number" class="form-input" id="set_keepalive" value="120" min="20" max="600">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">آدرس پورتال گیت دانشگاه</label>
+          <input type="text" class="form-input" id="set_gate_url" value="https://gate1.urmia.ac.ir:8090/">
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="margin-bottom: 0;">نام‌های Wi-Fi دانشگاه (با کاما جدا کنید)</label>
+            <button class="btn btn-secondary btn-sm" onclick="detectCurrentWifi()">افزودن Wi-Fi فعلی</button>
+          </div>
+          <input type="text" class="form-input" id="set_ssids" placeholder="URMIA-UNI, eduroam">
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. LOGS TAB -->
+    <section id="tab-logs" class="tab-content">
+      <div class="section-header">
+        <div class="section-title">کنسول و گزارش رویدادها</div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" onclick="copyLogs()">کپی لاگ</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearLogs()">پاک‌سازی</button>
+          <button class="btn btn-primary btn-sm" onclick="probeGate()">تست پروب گیت</button>
+        </div>
+      </div>
+
+      <div class="console-box" id="consoleBox">
+        <!-- Log lines injected here -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add/Edit Account Modal -->
+  <div class="modal-backdrop" id="accountModal">
+    <div class="modal">
+      <div class="modal-title" id="modalAccountTitle">افزودن حساب دانشجویی جدید</div>
+
+      <input type="hidden" id="acc_old_name" value="">
+
+      <div class="form-group">
+        <label class="form-label">نام یا عنوان حساب (مثلا: حساب خودم، لپتاپ)</label>
+        <input type="text" class="form-input" id="acc_name" placeholder="حساب من">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">شماره دانشجویی / نام کاربری پورتال</label>
+        <input type="text" class="form-input" id="acc_user" placeholder="1401..." style="direction: ltr;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">رمز عبور اینترنت دانشگاه</label>
+        <div class="input-with-icon">
+          <input type="password" class="form-input" id="acc_pass" placeholder="••••••••" style="direction: ltr;">
+          <button type="button" class="input-icon-btn" onclick="togglePassVisibility('acc_pass')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">آدرس اختصاصی گیت (اختیاری — پیش‌فرض سیستم)</label>
+        <input type="text" class="form-input" id="acc_gate" placeholder="خالی = پیش‌فرض دانشگاه" style="direction: ltr;">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAccountModal()">انصراف</button>
+        <button class="btn btn-primary" onclick="submitAccountForm()">ذخیره حساب</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // State Store in JS
+    let currentTab = 'dashboard';
+    let appState = {
+      status: 'idle',
+      message: 'در حال آماده‌سازی…',
+      ssid: '',
+      ip: '',
+      campus: false,
+      online: false,
+      active_account: ''
+    };
+    let accountsData = [];
+    let activeProfileName = '';
+
+    // PyBridge Messenger
+    function postToPython(action, payload = {}) {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.pybridge) {
+        window.webkit.messageHandlers.pybridge.postMessage({ action, payload });
+      } else {
+        console.log('[DevBridge]', action, payload);
+      }
+    }
+
+    // Tabs
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      
+      const tabEl = document.getElementById('tab-' + tabId);
+      if (tabEl) tabEl.classList.add('active');
+
+      const navs = document.querySelectorAll('.nav-item');
+      if (tabId === 'dashboard') navs[0].classList.add('active');
+      else if (tabId === 'accounts') navs[1].classList.add('active');
+      else if (tabId === 'settings') navs[2].classList.add('active');
+      else if (tabId === 'logs') navs[3].classList.add('active');
+    }
+
+    // Modal
+    function openAddAccountModal() {
+      document.getElementById('modalAccountTitle').innerText = 'افزودن حساب دانشجویی جدید';
+      document.getElementById('acc_old_name').value = '';
+      document.getElementById('acc_name').value = '';
+      document.getElementById('acc_user').value = '';
+      document.getElementById('acc_pass').value = '';
+      document.getElementById('acc_gate').value = '';
+      document.getElementById('accountModal').classList.add('open');
+    }
+
+    function openEditAccountModal(name) {
+      const p = accountsData.find(a => a.name === name);
+      if (!p) return;
+      document.getElementById('modalAccountTitle').innerText = 'ویرایش حساب «' + name + '»';
+      document.getElementById('acc_old_name').value = name;
+      document.getElementById('acc_name').value = p.name;
+      document.getElementById('acc_user').value = p.username;
+      document.getElementById('acc_pass').value = p.password || '';
+      document.getElementById('acc_gate').value = p.gate_url || '';
+      document.getElementById('accountModal').classList.add('open');
+    }
+
+    function closeAccountModal() {
+      document.getElementById('accountModal').classList.remove('open');
+    }
+
+    function submitAccountForm() {
+      const old_name = document.getElementById('acc_old_name').value.trim();
+      const name = document.getElementById('acc_name').value.trim();
+      const username = document.getElementById('acc_user').value.trim();
+      const password = document.getElementById('acc_pass').value;
+      const gate_url = document.getElementById('acc_gate').value.trim();
+
+      if (!name || !username || !password) {
+        showToast('لطفاً عنوان، نام کاربری و رمز عبور را وارد کنید', 'error');
+        return;
+      }
+
+      postToPython('save_account', { old_name, name, username, password, gate_url });
+      closeAccountModal();
+      showToast('حساب با موفقیت ذخیره شد', 'success');
+    }
+
+    function togglePassVisibility(id) {
+      const f = document.getElementById(id);
+      f.type = f.type === 'password' ? 'text' : 'password';
+    }
+
+    // Actions
+    function handleHeroAction() {
+      if (appState.online) {
+        postToPython('logout');
+        showToast('درخواست خروج ارسال شد', 'info');
+      } else {
+        postToPython('login');
+        showToast('درخواست ورود ارسال شد', 'info');
+      }
+    }
+
+    function recheckNetwork() {
+      const icon = document.getElementById('recheckIcon');
+      icon.classList.add('spinning');
+      postToPython('recheck');
+      setTimeout(() => icon.classList.remove('spinning'), 1200);
+      showToast('بررسی مجدد شبکه…', 'info');
+    }
+
+    function probeGate() {
+      addLog('sys', 'شروع تست پروب گیت دانشگاه...');
+      postToPython('probe');
+      showToast('در حال سنجش ارتباط با گیت دانشگاه…', 'info');
+    }
+
+    function setActiveAccount(name) {
+      postToPython('set_active_account', { name });
+      showToast('حساب فعال تغییر کرد', 'success');
+    }
+
+    function deleteAccount(name) {
+      if (confirm('آیا از حذف حساب «' + name + '» مطمئن هستید؟')) {
+        postToPython('delete_account', { name });
+        showToast('حساب حذف شد', 'info');
+      }
+    }
+
+    function testAccount(name) {
+      postToPython('test_account', { name });
+      showToast('در حال تست اعتبار حساب «' + name + '»…', 'info');
+    }
+
+    function detectCurrentWifi() {
+      postToPython('detect_current_wifi');
+    }
+
+    function saveSettings() {
+      const payload = {
+        auto_login: document.getElementById('set_auto_login').checked,
+        auto_switch_on_failure: document.getElementById('set_failover').checked,
+        launch_at_login: document.getElementById('set_autostart').checked,
+        check_interval_seconds: parseInt(document.getElementById('set_check_interval').value) || 20,
+        keepalive_seconds: parseInt(document.getElementById('set_keepalive').value) || 120,
+        gate_url: document.getElementById('set_gate_url').value.trim(),
+        ssids: document.getElementById('set_ssids').value.split(',').map(s => s.trim()).filter(Boolean)
+      };
+      postToPython('save_settings', payload);
+      showToast('تنظیمات با موفقیت ذخیره شد', 'success');
+    }
+
+    function clearLogs() {
+      document.getElementById('consoleBox').innerHTML = '';
+    }
+
+    function copyLogs() {
+      const text = document.getElementById('consoleBox').innerText;
+      navigator.clipboard.writeText(text);
+      showToast('تمام لاگ‌ها در حافظه کپی شد', 'success');
+    }
+
+    function addLog(tag, msg) {
+      const box = document.getElementById('consoleBox');
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      const row = document.createElement('div');
+      row.className = 'log-line';
+      row.innerHTML = `<span class="log-time">${time}</span><span class="log-tag ${tag}">[${tag.toUpperCase()}]</span><span class="log-msg">${escapeHtml(msg)}</span>`;
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function showToast(msg, type = 'info') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerText = msg;
+      c.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 250);
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Updates From Python Backend
+    window.updateAppState = function(s) {
+      appState = Object.assign({}, appState, s);
+
+      // Status pill & Dot
+      const dot = document.getElementById('sidebarDot');
+      dot.className = 'pulse-dot ' + (appState.status || 'idle');
+      document.getElementById('sidebarStatusText').innerText = 
+        appState.status === 'online' ? 'متصل به اینترنت' :
+        appState.status === 'campus' ? 'شناسایی گیت دانشگاه' :
+        appState.status === 'logging-in' ? 'در حال ورود…' :
+        appState.status === 'failed' ? 'ورود ناموفق' : 'شبکه دانشگاه نیست';
+
+      // Hero Card
+      const hero = document.getElementById('heroCard');
+      hero.className = 'card hero-card ' + (appState.status || 'idle');
+      
+      const btn = document.getElementById('btnHeroAction');
+      if (appState.online) {
+        document.getElementById('heroTitle').innerText = 'متصل به اینترنت دانشگاه';
+        document.getElementById('heroDesc').innerText = 'نشست فعال است و دسترسی برقرار می‌باشد.';
+        btn.className = 'btn btn-danger';
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> خروج از گیت`;
+      } else if (appState.status === 'campus') {
+        document.getElementById('heroTitle').innerText = 'شبکه دانشگاه شناسایی شد';
+        document.getElementById('heroDesc').innerText = 'پورتال گیت آماده دریافت نام کاربری و رمز عبور است.';
+        btn.className = 'btn btn-primary';
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ورود به اینترنت`;
+      } else if (appState.status === 'logging-in') {
+        document.getElementById('heroTitle').innerText = 'در حال برقراری اتصال…';
+        document.getElementById('heroDesc').innerText = appState.message || 'در حال ارسال درخواست احراز هویت به گیت…';
+        btn.className = 'btn btn-secondary';
+        btn.innerHTML = `<span class="spinning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg></span> شکیبا باشید`;
+      } else {
+        document.getElementById('heroTitle').innerText = appState.status === 'failed' ? 'خطا در ورود' : 'آماده اتصال';
+        document.getElementById('heroDesc').innerText = appState.message || 'منتظر اتصال به Wi-Fi دانشگاه ارومیه';
+        btn.className = 'btn btn-primary';
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ورود دستی`;
+      }
+
+      // Stats
+      document.getElementById('statSsid').innerText = appState.ssid || 'قطع';
+      document.getElementById('statCampusStatus').innerText = appState.campus ? 'شبکه دانشگاه ✓' : 'Wi-Fi معمولی';
+      document.getElementById('statIp').innerText = appState.ip || '—';
+      document.getElementById('statActiveAccount').innerText = appState.active_account || '—';
+
+      // Latest message
+      if (appState.message) {
+        document.getElementById('latestPortalMsg').innerText = appState.message;
+      }
+    };
+
+    window.updateAccounts = function(accounts, activeName) {
+      accountsData = accounts || [];
+      activeProfileName = activeName || '';
+      const list = document.getElementById('accountsList');
+      list.innerHTML = '';
+
+      if (!accountsData.length) {
+        list.innerHTML = `<div class="card" style="text-align: center; color: var(--text-muted); padding: 30px;">هنوز حسابی تعریف نشده است. از دکمه «افزودن حساب» استفاده کنید.</div>`;
+        return;
+      }
+
+      accountsData.forEach(p => {
+        const isActive = (p.name === activeProfileName);
+        const card = document.createElement('div');
+        card.className = 'account-card' + (isActive ? ' active' : '');
+        card.innerHTML = `
+          <div class="account-left">
+            <div class="account-avatar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <div class="account-name">
+                ${escapeHtml(p.name)}
+                ${isActive ? '<span class="active-badge">حساب فعال</span>' : ''}
+              </div>
+              <div class="account-user">${escapeHtml(p.username)} ${p.note ? ' · ' + escapeHtml(p.note) : ''}</div>
+            </div>
+          </div>
+          <div class="account-actions">
+            ${!isActive ? `<button class="btn btn-secondary btn-sm" onclick="setActiveAccount('${escapeHtml(p.name)}')">فعال‌سازی</button>` : ''}
+            <button class="btn btn-secondary btn-sm" onclick="testAccount('${escapeHtml(p.name)}')">تست ورود</button>
+            <button class="btn btn-icon" onclick="openEditAccountModal('${escapeHtml(p.name)}')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn btn-icon" onclick="deleteAccount('${escapeHtml(p.name)}')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      const activeObj = accountsData.find(a => a.name === activeProfileName);
+      if (activeObj) {
+        document.getElementById('statActiveUser').innerText = activeObj.username;
+      }
+    };
+
+    window.updateSettings = function(cfg) {
+      if (!cfg) return;
+      document.getElementById('set_auto_login').checked = cfg.auto_login !== false;
+      document.getElementById('set_failover').checked = cfg.auto_switch_on_failure !== false;
+      document.getElementById('set_check_interval').value = cfg.check_interval_seconds || 20;
+      document.getElementById('set_keepalive').value = cfg.keepalive_seconds || 120;
+      document.getElementById('set_gate_url').value = cfg.gate_url || 'https://gate1.urmia.ac.ir:8090/';
+      document.getElementById('set_ssids').value = (cfg.ssids || []).join(', ');
+      document.getElementById('set_autostart').checked = !!cfg.launch_at_login;
+    };
+
+    window.onCurrentWifiDetected = function(ssid) {
+      if (!ssid) {
+        showToast('نام Wi-Fi شناسایی نشد', 'error');
+        return;
+      }
+      const f = document.getElementById('set_ssids');
+      const list = f.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (!list.includes(ssid)) {
+        list.push(ssid);
+        f.value = list.join(', ');
+        showToast('شبکه «' + ssid + '» اضافه شد', 'success');
+      } else {
+        showToast('این شبکه از قبل در لیست وجود دارد', 'info');
+      }
+    };
+
+    window.addLogMessage = function(tag, msg) {
+      addLog(tag, msg);
+    };
+
+    // Initial Ready Trigger
+    document.addEventListener('DOMContentLoaded', () => {
+      addLog('sys', 'کنترل پنل UniLink آماده است.');
+      postToPython('ready');
+    });
+  </script>
+</body>
+</html>

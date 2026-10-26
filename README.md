@@ -1,90 +1,129 @@
 # UniLink 1.2.1
 
-[دانلود نسخهٔ ویندوز و سورس](https://github.com/metasina3/UniLink/releases) · [راهنمای فارسی آفلاین](docs/README_FA.html)
+[دانلود نسخه‌ها و سورس (Releases)](https://github.com/metasina3/UniLink/releases) · [راهنمای فارسی آفلاین](docs/README_FA.html) · [راهنمای نسخه مک (macOS Guide)](docs/MACOS_GUIDE.md)
 
-A dark blue interface that fits the working area of your display. Pages and dialogs use compact layouts without outer page scrolling. Replace the old executable after exiting it; the existing account file and settings format are unchanged.
+UniLink is an automated, multi-platform client for university captive portals (Cyberoam / Sophos / Ivanti). It features automatic campus network detection, seamless sign-in, background keepalive heartbeats, and multi-account quota failover.
 
-A portable Windows desktop client for Sophos/Cyberoam university captive portals.
-Default network: `UUWN`; default portal: `https://192.168.100.40:8090/`.
-No accounts, student numbers, passwords, or original HAR files are included.
+Default network: `UUWN` · Default portal: `https://192.168.100.40:8090/` and `https://gate1.urmia.ac.ir:8090/`.
 
-Open **docs/README_FA.html** for the complete Persian setup and troubleshooting guide.
+---
 
-## Run
+## Platform Editions
 
-Download/extract the Windows x64 release and run `UniLink.exe`.
-Windows 10 version 2004 (build 19041) or later, including Windows 11, on x64 is required.
-The release contains its .NET runtime; users do not need Python, a browser extension, administrator access or a separate .NET installation.
-Add accounts in **Accounts**, select the default, connect to campus Wi-Fi, and approve the portal's certificate on first connection.
+| Feature | Windows Edition | macOS Edition |
+| :--- | :--- | :--- |
+| **Interface** | Native WinForms Dark GUI + System Tray | Native Menu Bar (`NSStatusBar`) + Modern Dark Glassmorphism Dashboard (`WKWebView`) |
+| **Runtime** | Self-contained .NET 8 (Zero setup required) | Embedded Python 3 app bundle / CLI (Zero external deps) |
+| **Startup** | Windows Run Registry key | macOS `LaunchAgent` (`ir.unilink.desktop.plist`) |
+| **Security** | Windows DPAPI encrypted settings | Secure local storage (`0600` permissions) |
+| **Network Engine** | Hardware interface & Win32 IP_UNICAST_IF binding | Native SystemConfiguration, BSSID detection & VPN fake-IP bypass |
+| **Multi-Account** | Default + sequential failover | Active + sequential quota failover |
 
-## Features
+---
 
-- SSID-based automatic sign-in; editable groups, SSIDs and multiple portal endpoints.
-- Optional portal-only discovery with a previously pinned certificate, including Ethernet.
-- One active login at a time: default account, then enabled fallbacks in saved order.
-- The captured protocol: POST `login.xml` (191), GET `live` (192), POST `logout.xml` (193), `producttype=0`.
-- Background heartbeat (180 seconds by default), tray controls and Windows sign-in startup.
-- Network-interface binding; automatic recovery after network changes or sleep/resume.
-- Persistent quota exclusions, Gregorian month rollover in the university time zone, hourly reset-day probes if quota is not yet renewed.
-- Wrong passwords require editing/explicit retry. Timeouts, network failures and ambiguous errors never imply quota exhaustion.
-- Whole settings file encrypted with current-user Windows DPAPI; atomic writes and an encrypted previous-version backup.
-- Certificate approval/pinning before credentials; redirects/proxies are disabled. Changed certificates stop authentication.
-- Sanitized, in-memory diagnostic log and account-free network template import/export.
+## macOS Edition
 
-## Build and tests
+### 1. Build and Run App Bundle
+Build `~/Applications/UniLink.app` (includes embedded runtime):
+```bash
+python3 src/UniLink.macOS/install.py build
+open ~/Applications/UniLink.app
+```
 
-Install a supported .NET 8 SDK (8.0.426 or a later compatible feature band) from Microsoft, then:
+### 2. Autostart on Login
+```bash
+python3 src/UniLink.macOS/install.py autostart
+# To remove:
+python3 src/UniLink.macOS/install.py noautostart
+```
 
+### 3. Headless CLI
+```bash
+# Check network and gate status
+python3 -m unilink.cli status
+python3 -m unilink.cli probe
+
+# Manage accounts
+python3 -m unilink.cli accounts add --label "حساب ۱" --username "1401..."
+python3 -m unilink.cli accounts list
+
+# Login / Logout
+python3 -m unilink.cli login
+python3 -m unilink.cli logout
+
+# Open GUI Dashboard
+python3 -m unilink.cli gui
+```
+
+---
+
+## Windows Edition
+
+Download the Windows x64 release and run `UniLink.exe`.
+Requires Windows 10 (version 2004+) or Windows 11 on x64. Contains its own .NET runtime; no separate installation or admin privileges needed.
+
+Build locally with .NET 8 SDK:
 ```powershell
 ./build.ps1
 ```
 
-Optional ARM64 build on a developer machine:
+---
 
-```powershell
-./build.ps1 -Runtime win-arm64
+## Repository Structure
+
+```
+UniLink/
+├── .github/
+│   └── workflows/
+│       ├── windows.yml             # Windows x64 build, test & release workflow
+│       └── macos.yml               # macOS app bundle build, test & release workflow
+├── docs/
+│   ├── CHANGELOG.md                # Release changelog
+│   ├── MACOS_GUIDE.md              # Full macOS guide & troubleshooting
+│   ├── NETWORK_BEHAVIOR.md         # Low-level network adapter binding rules
+│   ├── PROTOCOL.md                 # Sophos/Cyberoam captive portal protocol
+│   └── README_FA.html              # راهنمای فارسی جامع
+├── notices/                        # Third-party licenses & SDK notices
+├── src/
+│   ├── UniLink.Core/               # .NET Core protocol models & engine
+│   ├── UniLink.Windows/            # Windows WinForms client & DPAPI store
+│   └── UniLink.macOS/              # macOS MenuBar, Glass Dashboard & CLI
+│       ├── install.py              # macOS bundle & LaunchAgent builder
+│       └── unilink/
+│           ├── client.py           # Captive portal HTTP client (191/192/193)
+│           ├── config.py           # Multi-account & settings store
+│           ├── netinfo.py          # macOS Wi-Fi & network inspector
+│           ├── watcher.py          # Background auto-connect daemon
+│           ├── menubar.py          # Native macOS Menu Bar status app
+│           ├── window.py           # WKWebView modern glass window
+│           ├── cli.py              # Terminal commands & CLI
+│           └── gui/                # Dark glassmorphism dashboard UI
+└── tests/
+    ├── UniLink.Tests/              # .NET test harness
+    └── UniLink.macOS.Tests/        # macOS Python test suite (mock portal server)
 ```
 
-Only the x64 build is included with this release. ARM64 has not been built or validated here.
-Tests can run separately on Linux, macOS or Windows with the SDK:
+---
 
+## Testing
+
+### macOS Tests
+```bash
+python3 -m unittest discover tests/UniLink.macOS.Tests
+```
+Passes 15 tests covering protocol parsing, quota phrases, login, heartbeat, failover, and secure storage against a local mock portal server.
+
+### Windows / Core Tests
 ```sh
 dotnet run --project tests/UniLink.Tests/UniLink.Tests.csproj -c Release
 ```
+Passes 49 tests verifying credential handling, synthetic TLS Schannel keys, physical adapter eligibility, and multi-account rotation.
 
-The test executable is a dependency-free assertion harness (46 Linux tests plus 3 guarded native Windows cases); it is deliberately invoked with `dotnet run`, rather than `dotnet test`.
-It includes an actual local HTTPS server with self-signed certificates, checking form encoding, heartbeat and logout, pin failures, redirects and response-size limits.
+---
 
-## Scope of verification
-
-Native Windows CI now builds the x64 binary: **49 tests passed and 39 real WinForms views passed layout checks**. [Verification run](https://github.com/metasina3/UniLink/actions/runs/39115228489). Earlier Linux verification passed 46 tests.
-The user confirmed that version 1.0 works on Windows and UUWN. Version 1.2.1 retains the compact 1.2 layout, measures heading heights using native font metrics, and adds verified base-adapter selection, interface-scoped Windows DNS and recognition of the university exhaustion message for both new and existing settings. The new layout was rendered and checked with a Mono WinForms compatibility harness in Linux: 39 views at each of 100%, 125%, 150% and 200% (156 checks, zero layout failures); this is not execution of the Windows binary. The additional native Windows run covers 39 views at 96 DPI; physical multi-monitor DPI transitions and a real campus VPN/kill-switch configuration still require field verification.
-The supplied HAR contained successful login/keepalive. The later university log supplied the exact exhaustion phrase now covered by regression tests and built-in detection. Other provider-specific quota phrases remain configurable.
-
-This release implements the Sophos/Cyberoam credential web-client protocol. Changing a URL does not add support for unrelated portal protocols, SSO, OTP/MFA or CAPTCHA.
-The supplied university portal uses IPv4; this build selects IPv4 interface addresses. It does not manage Wi-Fi passwords or prevent Windows sleep.
-“Connected” means the portal acknowledged authentication; an upstream internet outage or a policy block can still prevent internet access.
-
-## Files and privacy
-
-User data: `%LOCALAPPDATA%\UniLink\settings.dpapi` and `settings.dpapi.bak`.
-Encrypted files belong to the Windows user who created them and are not a portable account-sharing format.
-Network templates contain no accounts or certificate approvals. The app makes no analytics or cloud-account requests.
-Windows startup uses the current user's Run entry named `UniLink` and launches the same executable with `--background`.
-Exit and disable startup from the app before removing it. After exit, removing the data directory removes saved accounts.
-
-App source: MIT. Bundled .NET components retain their own licenses under `notices/`.
-The distributed executable is not Authenticode-signed. It is built from the included source, and its checksum is supplied in the portable package.
-The included Windows workflow tests, publishes and packages the project. A published v-prefixed GitHub release triggers attachment of the tested executable, exact source ZIP and checksums. Only release attachment has write permissions. No credentials are imported automatically.
-
-## UI checks
-
-On a Windows developer machine, run `UniLink.exe --ui-check C:\Temp\UniLink-UI` to inspect the real Windows controls using synthetic accounts. This mode does not read saved credentials, register startup or contact a portal. It writes screenshots and a layout report. The normal app has no dependency on Mono, Wine or the compatibility harness. See `docs/UI_VERIFICATION.md`.
-
-## Base network interface and VPNs
-
-Login, heartbeat and logout verify the selected hardware Wi-Fi/Ethernet adapter and bind both its local IPv4 and Windows IP_UNICAST_IF. Ethernet-like virtual/VPN adapters are excluded. Invalid, removed or unverified adapters fail without a default-route fallback. Adapter GUID/index is checked again before new connections. System HTTP proxies are disabled. Numeric portal URLs do not use DNS; Windows hostname queries specify the same interface in DnsQueryEx.
-
-This does not override VPN firewall/kill-switch rules: allow LAN traffic in the VPN when its firewall blocks private addresses. No system route, proxy or firewall setting is modified. See [network behavior](docs/NETWORK_BEHAVIOR.md).
-
-The exact error `Your data transfer has been exceeded, Please contact the administrator` is classified as exhausted quota even with previously saved/custom phrase lists. The rejected account is blocked for the current university Gregorian month and enabled backups are tried one at a time, normally after 3 seconds. Successful status still wins; transport errors never consume quota.
+## Protocol Reference
+UniLink speaks the Sophos / Cyberoam credential web-client protocol:
+- **Login**: `POST /login.xml` (`mode=191`, `username`, `password`, `producttype=0`, `a=<timestamp_ms>`)
+- **Heartbeat**: `GET /live.xml?username=...` or `/live` (`mode=192`)
+- **Logout**: `POST /logout.xml` (`mode=193`)
+- **Quota Exceeded Detection**: Automatic recognition of university exhaustion messages (`"your data transfer has been exceeded"`, `"حجم شما به پایان"`, etc.).

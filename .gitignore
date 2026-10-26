@@ -12,3 +12,10 @@ artifacts/
 *.log
 .env
 .env.*
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
