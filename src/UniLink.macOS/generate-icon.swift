@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-func renderIcon(size: CGFloat) -> NSImage {
+func createUniLinkAppIcon(size: CGFloat) -> NSImage {
     let img = NSImage(size: NSSize(width: size, height: size))
     img.lockFocus()
     guard let ctx = NSGraphicsContext.current?.cgContext else {
@@ -12,167 +12,150 @@ func renderIcon(size: CGFloat) -> NSImage {
     ctx.setAllowsAntialiasing(true)
     ctx.setShouldAntialias(true)
 
-    let scale = size / 1024.0
+    let s = size / 1024.0
 
-    // Coordinate system: (0,0) at bottom-left in Cocoa lockFocus
-    // 1. Drop shadow for the squircle
+    // 1. Drop shadow for macOS Squircle
     ctx.saveGState()
-    let shadowColor = NSColor(calibratedRed: 0.02, green: 0.04, blue: 0.08, alpha: 0.55).cgColor
-    ctx.setShadow(offset: CGSize(width: 0, height: -14 * scale), blur: 28 * scale, color: shadowColor)
+    let shadowColor = NSColor(calibratedRed: 0.01, green: 0.02, blue: 0.05, alpha: 0.65).cgColor
+    ctx.setShadow(offset: CGSize(width: 0, height: -16 * s), blur: 30 * s, color: shadowColor)
 
-    // Squircle rect
-    let squircleRect = CGRect(x: 104 * scale, y: 104 * scale, width: 816 * scale, height: 816 * scale)
-    let cornerRadius = 184.0 * scale
+    let squircleRect = CGRect(x: 104 * s, y: 104 * s, width: 816 * s, height: 816 * s)
+    let cornerRadius = 184.0 * s
     let squirclePath = CGPath(roundedRect: squircleRect, cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
     ctx.addPath(squirclePath)
-    ctx.setFillColor(NSColor(calibratedRed: 0.08, green: 0.11, blue: 0.18, alpha: 1.0).cgColor)
+    ctx.setFillColor(NSColor(calibratedRed: 0.04, green: 0.07, blue: 0.14, alpha: 1.0).cgColor)
     ctx.fillPath()
     ctx.restoreGState()
 
-    // 2. Base Gradient Fill inside squircle
+    // 2. Background Gradient inside squircle
     ctx.saveGState()
     ctx.addPath(squirclePath)
     ctx.clip()
 
     let colorSpace = CGColorSpaceCreateDeviceRGB()
-    let gradColors = [
-        NSColor(calibratedRed: 0.12, green: 0.18, blue: 0.32, alpha: 1.0).cgColor, // Deep navy
-        NSColor(calibratedRed: 0.06, green: 0.09, blue: 0.16, alpha: 1.0).cgColor  // Dark slate
+    let bgColors = [
+        NSColor(calibratedRed: 0.09, green: 0.15, blue: 0.28, alpha: 1.0).cgColor, // Deep Royal Navy
+        NSColor(calibratedRed: 0.03, green: 0.05, blue: 0.10, alpha: 1.0).cgColor  // Pitch Dark
     ] as CFArray
-    if let gradient = CGGradient(colorsSpace: colorSpace, colors: gradColors, locations: [0.0, 1.0]) {
-        ctx.drawLinearGradient(
-            gradient,
-            start: CGPoint(x: 512 * scale, y: 920 * scale),
-            end: CGPoint(x: 512 * scale, y: 104 * scale),
-            options: []
-        )
+    if let bgGrad = CGGradient(colorsSpace: colorSpace, colors: bgColors, locations: [0.0, 1.0]) {
+        ctx.drawLinearGradient(bgGrad, start: CGPoint(x: 512 * s, y: 920 * s), end: CGPoint(x: 512 * s, y: 104 * s), options: [])
     }
 
-    // Radial ambient glow in center
+    // Radial Cyan/Blue Ambient Center Light
     let glowColors = [
-        NSColor(calibratedRed: 0.22, green: 0.45, blue: 0.95, alpha: 0.32).cgColor,
-        NSColor(calibratedRed: 0.06, green: 0.25, blue: 0.70, alpha: 0.0).cgColor
+        NSColor(calibratedRed: 0.06, green: 0.65, blue: 0.98, alpha: 0.35).cgColor,
+        NSColor(calibratedRed: 0.02, green: 0.30, blue: 0.75, alpha: 0.0).cgColor
     ] as CFArray
-    if let radialGrad = CGGradient(colorsSpace: colorSpace, colors: glowColors, locations: [0.0, 1.0]) {
-        ctx.drawRadialGradient(
-            radialGrad,
-            startCenter: CGPoint(x: 512 * scale, y: 560 * scale),
-            startRadius: 20 * scale,
-            endCenter: CGPoint(x: 512 * scale, y: 560 * scale),
-            endRadius: 360 * scale,
-            options: []
-        )
+    if let radial = CGGradient(colorsSpace: colorSpace, colors: glowColors, locations: [0.0, 1.0]) {
+        ctx.drawRadialGradient(radial, startCenter: CGPoint(x: 512 * s, y: 480 * s), startRadius: 20 * s, endCenter: CGPoint(x: 512 * s, y: 480 * s), endRadius: 400 * s, options: [])
     }
+
+    // Subtle Grid pattern / concentric tech rings in background
+    ctx.setLineWidth(1.0 * s)
+    ctx.setStrokeColor(NSColor(calibratedWhite: 1.0, alpha: 0.05).cgColor)
+    ctx.strokeEllipse(in: CGRect(x: 212 * s, y: 180 * s, width: 600 * s, height: 600 * s))
+    ctx.strokeEllipse(in: CGRect(x: 312 * s, y: 280 * s, width: 400 * s, height: 400 * s))
 
     // Inner highlight border
-    let innerBorderPath = CGPath(roundedRect: squircleRect.insetBy(dx: 1.5 * scale, dy: 1.5 * scale), cornerWidth: cornerRadius - 1.5 * scale, cornerHeight: cornerRadius - 1.5 * scale, transform: nil)
-    ctx.addPath(innerBorderPath)
-    ctx.setLineWidth(2.5 * scale)
-    ctx.setStrokeColor(NSColor(calibratedWhite: 1.0, alpha: 0.18).cgColor)
+    let innerBorder = CGPath(roundedRect: squircleRect.insetBy(dx: 1.5 * s, dy: 1.5 * s), cornerWidth: cornerRadius - 1.5 * s, cornerHeight: cornerRadius - 1.5 * s, transform: nil)
+    ctx.addPath(innerBorder)
+    ctx.setLineWidth(2.5 * s)
+    ctx.setStrokeColor(NSColor(calibratedWhite: 1.0, alpha: 0.22).cgColor)
     ctx.strokePath()
 
     ctx.restoreGState() // unclip
 
-    // 3. Central Gateway / Portal Arch
-    // Draw inverted U-shape arch
+    // ========================================================
+    // 3. FUSION: URMIA UNIVERSITY LOGO + WI-FI TRANSMISSION
+    // ========================================================
     ctx.saveGState()
-    let gatePath = CGMutablePath()
-    let leftX = 330.0 * scale
-    let rightX = 694.0 * scale
-    let bottomY = 280.0 * scale
-    let archTopY = 530.0 * scale
-    let archRadius = (rightX - leftX) / 2.0
 
-    gatePath.move(to: CGPoint(x: leftX, y: bottomY))
-    gatePath.addLine(to: CGPoint(x: leftX, y: archTopY))
-    gatePath.addArc(
-        center: CGPoint(x: 512 * scale, y: archTopY),
-        radius: archRadius,
-        startAngle: .pi,
-        endAngle: 0,
-        clockwise: true
-    )
-    gatePath.addLine(to: CGPoint(x: rightX, y: bottomY))
+    let cyanGlow = NSColor(calibratedRed: 0.06, green: 0.75, blue: 0.98, alpha: 1.0)
+    let whitePure = NSColor(calibratedRed: 0.98, green: 0.99, blue: 1.0, alpha: 1.0)
 
-    // Gate subtle glow
-    ctx.setShadow(
-        offset: CGSize(width: 0, height: 0),
-        blur: 16 * scale,
-        color: NSColor(calibratedRed: 0.06, green: 0.71, blue: 0.98, alpha: 0.45).cgColor
-    )
+    // Center Wi-Fi Node location
+    let nodeCenter = CGPoint(x: 512 * s, y: 450 * s)
 
-    ctx.addPath(gatePath)
+    // A. The 3 Glowing Wi-Fi Waves radiating upward from university dome
+    // Outer Wave
+    let wave3 = CGMutablePath()
+    wave3.addArc(center: nodeCenter, radius: 340 * s, startAngle: .pi * 0.28, endAngle: .pi * 0.72, clockwise: false)
+    ctx.saveGState()
+    ctx.setShadow(offset: .zero, blur: 16 * s, color: cyanGlow.withAlphaComponent(0.6).cgColor)
+    ctx.addPath(wave3)
     ctx.setLineCap(.round)
-    ctx.setLineJoin(.round)
-    ctx.setLineWidth(52 * scale)
+    ctx.setLineWidth(30 * s)
+    ctx.setStrokeColor(cyanGlow.cgColor)
+    ctx.strokePath()
+    ctx.restoreGState()
 
-    let gateColors = [
-        NSColor(calibratedRed: 0.02, green: 0.71, blue: 0.98, alpha: 1.0).cgColor, // Cyan
-        NSColor(calibratedRed: 0.23, green: 0.51, blue: 0.96, alpha: 1.0).cgColor  // Bright Blue
-    ] as CFArray
-    if let gateGrad = CGGradient(colorsSpace: colorSpace, colors: gateColors, locations: [0.0, 1.0]) {
-        ctx.replacePathWithStrokedPath()
-        ctx.clip()
-        ctx.drawLinearGradient(
-            gateGrad,
-            start: CGPoint(x: 330 * scale, y: 280 * scale),
-            end: CGPoint(x: 694 * scale, y: 720 * scale),
-            options: []
-        )
+    // Middle Wave
+    let wave2 = CGMutablePath()
+    wave2.addArc(center: nodeCenter, radius: 250 * s, startAngle: .pi * 0.27, endAngle: .pi * 0.73, clockwise: false)
+    ctx.saveGState()
+    ctx.setShadow(offset: .zero, blur: 14 * s, color: cyanGlow.withAlphaComponent(0.5).cgColor)
+    ctx.addPath(wave2)
+    ctx.setLineCap(.round)
+    ctx.setLineWidth(28 * s)
+    ctx.setStrokeColor(whitePure.cgColor)
+    ctx.strokePath()
+    ctx.restoreGState()
+
+    // Inner Wave
+    let wave1 = CGMutablePath()
+    wave1.addArc(center: nodeCenter, radius: 165 * s, startAngle: .pi * 0.25, endAngle: .pi * 0.75, clockwise: false)
+    ctx.saveGState()
+    ctx.setShadow(offset: .zero, blur: 12 * s, color: cyanGlow.withAlphaComponent(0.5).cgColor)
+    ctx.addPath(wave1)
+    ctx.setLineCap(.round)
+    ctx.setLineWidth(26 * s)
+    ctx.setStrokeColor(cyanGlow.cgColor)
+    ctx.strokePath()
+    ctx.restoreGState()
+
+    // B. Urmia University Emblem Architecture
+    // Draw the iconic Urmia University Emblem
+    let logoPath = "/Users/matthew/.hermes/cache/scratch/logo.png"
+    if let logoImg = NSImage(contentsOfFile: logoPath) {
+        // Draw the university logo with pristine high-DPI scaling and cyan-white tint
+        let logoW = 390.0 * s
+        let logoH = 450.0 * s
+        let logoRect = CGRect(x: 512 * s - logoW / 2.0, y: 195 * s, width: logoW, height: logoH)
+
+        ctx.saveGState()
+        ctx.setShadow(offset: CGSize(width: 0, height: 4 * s), blur: 18 * s, color: cyanGlow.withAlphaComponent(0.7).cgColor)
+
+        // Draw tinted logo
+        if let cgImg = logoImg.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+            // Mask with logo alpha and fill with radiant cyan-white gradient
+            ctx.clip(to: logoRect, mask: cgImg)
+
+            let emblemGradColors = [
+                NSColor(calibratedRed: 0.95, green: 0.98, blue: 1.0, alpha: 1.0).cgColor,
+                NSColor(calibratedRed: 0.06, green: 0.75, blue: 0.98, alpha: 1.0).cgColor
+            ] as CFArray
+            if let emblemGrad = CGGradient(colorsSpace: colorSpace, colors: emblemGradColors, locations: [0.0, 1.0]) {
+                ctx.drawLinearGradient(emblemGrad, start: CGPoint(x: 512 * s, y: 195 * s + logoH), end: CGPoint(x: 512 * s, y: 195 * s), options: [])
+            }
+        }
+        ctx.restoreGState()
     }
-    ctx.restoreGState()
 
-    // 4. Wi-Fi Signal Arcs
+    // C. Glowing Wi-Fi Center Dot / Pulse
+    let dotRadius = 24.0 * s
+    let dotRect = CGRect(x: nodeCenter.x - dotRadius, y: nodeCenter.y - dotRadius, width: dotRadius * 2, height: dotRadius * 2)
+
     ctx.saveGState()
-    ctx.setLineCap(.round)
-    ctx.setShadow(offset: CGSize(width: 0, height: -2 * scale), blur: 6 * scale, color: NSColor.black.withAlphaComponent(0.3).cgColor)
+    ctx.setShadow(offset: .zero, blur: 20 * s, color: cyanGlow.cgColor)
+    ctx.setFillColor(cyanGlow.cgColor)
+    ctx.fillEllipse(in: dotRect)
 
-    // Outer Wi-Fi Arc
-    let outerArc = CGMutablePath()
-    let wifiCenter = CGPoint(x: 512 * scale, y: 390 * scale)
-    outerArc.addArc(center: wifiCenter, radius: 260 * scale, startAngle: .pi * 0.25, endAngle: .pi * 0.75, clockwise: false)
-    ctx.addPath(outerArc)
-    ctx.setLineWidth(32 * scale)
-    ctx.setStrokeColor(NSColor(calibratedRed: 0.96, green: 0.97, blue: 0.99, alpha: 0.95).cgColor)
-    ctx.strokePath()
-
-    // Middle Wi-Fi Arc
-    let midArc = CGMutablePath()
-    midArc.addArc(center: wifiCenter, radius: 175 * scale, startAngle: .pi * 0.27, endAngle: .pi * 0.73, clockwise: false)
-    ctx.addPath(midArc)
-    ctx.setLineWidth(30 * scale)
-    ctx.setStrokeColor(NSColor(calibratedRed: 0.88, green: 0.92, blue: 0.98, alpha: 0.90).cgColor)
-    ctx.strokePath()
-
-    // 5. Center Connection Node (Dot)
-    let nodeRadius = 26.0 * scale
-    let nodeRect = CGRect(
-        x: wifiCenter.x - nodeRadius,
-        y: wifiCenter.y - nodeRadius + 30 * scale,
-        width: nodeRadius * 2,
-        height: nodeRadius * 2
-    )
-
-    ctx.setShadow(
-        offset: CGSize(width: 0, height: 0),
-        blur: 14 * scale,
-        color: NSColor(calibratedRed: 0.06, green: 0.71, blue: 0.98, alpha: 0.7).cgColor
-    )
-    ctx.setFillColor(NSColor(calibratedRed: 0.15, green: 0.65, blue: 0.98, alpha: 1.0).cgColor)
-    ctx.fillEllipse(in: nodeRect)
-
-    // Inner white highlight in dot
-    let flareRadius = 10.0 * scale
-    let flareRect = CGRect(
-        x: wifiCenter.x - flareRadius,
-        y: wifiCenter.y - flareRadius + 30 * scale,
-        width: flareRadius * 2,
-        height: flareRadius * 2
-    )
+    // Inner bright white core
     ctx.setFillColor(NSColor.white.cgColor)
-    ctx.fillEllipse(in: flareRect)
-
+    ctx.fillEllipse(in: dotRect.insetBy(dx: 7 * s, dy: 7 * s))
     ctx.restoreGState()
+
+    ctx.restoreGState() // unclip emblem
 
     img.unlockFocus()
     return img
@@ -196,15 +179,14 @@ let targets: [(String, CGFloat)] = [
 ]
 
 for (filename, px) in targets {
-    let img = renderIcon(size: px)
+    let img = createUniLinkAppIcon(size: px)
     guard let tiff = img.tiffRepresentation,
           let rep = NSBitmapImageRep(data: tiff),
           let png = rep.representation(using: .png, properties: [:]) else {
-        print("Failed to encode", filename)
         continue
     }
     let fileUrl = URL(fileURLWithPath: "\(iconsetDir)/\(filename)")
     try png.write(to: fileUrl)
     print("Rendered:", filename, "\(Int(px))x\(Int(px))")
 }
-print("All icon images successfully rendered to iconset!")
+print("Successfully generated all iconset resolutions with official Urmia University + Wi-Fi fusion!")
