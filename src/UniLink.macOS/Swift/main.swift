@@ -69,7 +69,7 @@ if args.count > 1 {
         exit(0)
 
     case "gui":
-        // Launch GUI dashboard directly
+        // Fall through to show dashboard window
         break
 
     default:
@@ -80,9 +80,16 @@ if args.count > 1 {
 
 // GUI Menu Bar App Execution
 class AppDelegate: NSObject, NSApplicationDelegate {
+    var openDashboardImmediately: Bool = false
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         MenuBarController.shared.setup()
         Watcher.shared.start()
+        if openDashboardImmediately {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                DashboardController.shared.show()
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -92,6 +99,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 let app = NSApplication.shared
 let delegate = AppDelegate()
+let wantsGui = args.contains("gui") || args.contains("--gui")
+delegate.openDashboardImmediately = wantsGui
 app.delegate = delegate
-app.setActivationPolicy(.accessory) // Menu bar agent, no dock icon
+app.setActivationPolicy(wantsGui ? .regular : .accessory)
 app.run()

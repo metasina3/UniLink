@@ -1,4 +1,4 @@
-# UniLink 1.2.1
+# UniLink 1.3.0
 
 [دانلود نسخه‌ها و سورس (Releases)](https://github.com/metasina3/UniLink/releases) · [راهنمای فارسی آفلاین](docs/README_FA.html) · [راهنمای نسخه مک (macOS Guide)](docs/MACOS_GUIDE.md)
 

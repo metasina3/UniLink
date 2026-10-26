@@ -10,8 +10,8 @@ echo "==> Building native Swift UniLink.app bundle..."
 mkdir -p artifacts
 echo "==> Packaging macOS Release ZIP..."
 cd "$HOME/Applications"
-zip -rq "$OLDPWD/artifacts/UniLink-1.2.1-macOS.zip" "UniLink.app"
+zip -rq "$OLDPWD/artifacts/UniLink-1.3.0-macOS.zip" "UniLink.app"
 cd "$OLDPWD"
-shasum -a 256 "artifacts/UniLink-1.2.1-macOS.zip" > "artifacts/UniLink-1.2.1-macOS.zip.sha256"
+shasum -a 256 "artifacts/UniLink-1.3.0-macOS.zip" > "artifacts/UniLink-1.3.0-macOS.zip.sha256"
 
-echo "==> Done! Artifact saved to artifacts/UniLink-1.2.1-macOS.zip"
+echo "==> Done! Artifact saved to artifacts/UniLink-1.3.0-macOS.zip"

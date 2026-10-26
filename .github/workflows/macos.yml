@@ -33,18 +33,18 @@ jobs:
         run: |
           python3 -m unittest discover tests/UniLink.macOS.Tests
 
-      - name: Package macOS App Bundle
+      - name: Package macOS App Bundle (Swift Native)
         run: |
           mkdir -p artifacts dist
-          # Run install build script
-          python3 src/UniLink.macOS/install.py build
+          chmod +x src/UniLink.macOS/build-swift.sh
+          ./src/UniLink.macOS/build-swift.sh
           
           APP_PATH="$HOME/Applications/UniLink.app"
           if [ -d "$APP_PATH" ]; then
             cd "$HOME/Applications"
-            zip -r "$GITHUB_WORKSPACE/artifacts/UniLink-macOS.zip" "UniLink.app"
+            zip -rq "$GITHUB_WORKSPACE/artifacts/UniLink-1.3.0-macOS.zip" "UniLink.app"
             cd "$GITHUB_WORKSPACE"
-            shasum -a 256 artifacts/UniLink-macOS.zip > artifacts/UniLink-macOS.zip.sha256
+            shasum -a 256 artifacts/UniLink-1.3.0-macOS.zip > artifacts/UniLink-1.3.0-macOS.zip.sha256
           else
             echo "UniLink.app build failed" && exit 1
           fi

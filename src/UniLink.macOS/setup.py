@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="unilink-macos",
-    version="1.2.1",
+    version="1.3.0",
     description="UniLink for macOS — University Wi-Fi Captive Portal Client",
     packages=find_packages(),
     include_package_data=True,
