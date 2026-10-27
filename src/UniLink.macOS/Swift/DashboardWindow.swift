@@ -2,10 +2,20 @@ import Foundation
 import AppKit
 import WebKit
 
+class WindowDragView: NSView {
+    override func mouseDown(with event: NSEvent) {
+        if event.clickCount == 2 {
+            window?.zoom(nil)
+        } else {
+            window?.performDrag(with: event)
+        }
+    }
+}
+
 public final class DashboardController: NSObject, WKScriptMessageHandler {
     public static let shared = DashboardController()
 
-    public var window: NSPanel?
+    public var window: NSWindow?
     public var webView: WKWebView?
 
     public override init() {
@@ -20,6 +30,9 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
         // Ensure window comes to front even if app runs in accessory mode
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        if window?.isMiniaturized == true {
+            window?.deminiaturize(nil)
+        }
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
     }
@@ -33,27 +46,41 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
             .fullSizeContentView
         ]
 
-        let panel = NSPanel(
+        let win = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 640),
             styleMask: style,
             backing: .buffered,
             defer: false
         )
-        panel.title = "UniLink — سامانه هوشمند اتصال دانشگاه"
-        panel.titlebarAppearsTransparent = true
-        panel.isReleasedWhenClosed = false
-        panel.minSize = NSSize(width: 780, height: 540)
-        panel.center()
+        win.title = "UniLink — سامانه هوشمند اتصال دانشگاه"
+        win.titlebarAppearsTransparent = true
+        win.isReleasedWhenClosed = false
+        win.minSize = NSSize(width: 780, height: 540)
+        win.center()
+        win.isMovable = true
+        win.isMovableByWindowBackground = true
+
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 900, height: 640))
+        container.autoresizingMask = [.width, .height]
 
         let config = WKWebViewConfiguration()
         let ucc = WKUserContentController()
         ucc.add(self, name: "pybridge")
         config.userContentController = ucc
 
-        let wv = WKWebView(frame: NSRect(x: 0, y: 0, width: 900, height: 640), configuration: config)
-        panel.contentView = wv
+        let wv = WKWebView(frame: container.bounds, configuration: config)
+        wv.autoresizingMask = [.width, .height]
+        wv.uiDelegate = self
+        container.addSubview(wv)
 
-        self.window = panel
+        // Add transparent drag bar at the top (x: 80 to leave space for traffic light buttons)
+        let dragBar = WindowDragView(frame: NSRect(x: 80, y: 640 - 52, width: 900 - 80, height: 52))
+        dragBar.autoresizingMask = [.width, .minYMargin]
+        container.addSubview(dragBar, positioned: .above, relativeTo: wv)
+
+        win.contentView = container
+
+        self.window = win
         self.webView = wv
 
         loadDashboardHtml()
@@ -94,19 +121,16 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
         case "ready":
             syncAll()
         case "login":
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.logToUi(tag: "auth", msg: "در حال ارسال درخواست ورود...")
-                Watcher.shared.tick()
-            }
+            Watcher.shared.forceLoginNow()
         case "logout":
             DispatchQueue.global(qos: .userInitiated).async {
                 let store = ConfigStore.shared
                 if let active = store.activeAccount() {
                     let client = PortalClient(portalUrl: store.config.portalUrl)
                     _ = client.logout(username: active.username)
-                    self.logToUi(tag: "auth", msg: "خروج انجام شد")
+                    self.logToUi(tag: "auth", msg: "خروج از حساب «\(active.label)» انجام شد")
                 }
-                Watcher.shared.poke()
+                Watcher.shared.logoutNow()
             }
         case "recheck":
             Watcher.shared.poke()
@@ -120,15 +144,19 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
                 self.logToUi(tag: "sys", msg: msg)
             }
         case "set_active_account":
-            if let accId = payload["id"] as? String ?? payload["name"] as? String {
+            let accId = payload["id"] as? String ?? payload["name"] as? String ?? ""
+            if !accId.isEmpty {
                 _ = ConfigStore.shared.setActiveAccount(id: accId)
                 syncAccounts()
+                syncState()
                 Watcher.shared.poke()
                 logToUi(tag: "auth", msg: "حساب فعال تغییر یافت: \(accId)")
             }
         case "save_account":
-            let accId = payload["id"] as? String ?? payload["old_name"] as? String ?? ""
-            let label = payload["label"] as? String ?? payload["name"] as? String ?? ""
+            let rawId = (payload["id"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
+            let rawOldName = (payload["old_name"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
+            let accId = !rawId.isEmpty ? rawId : rawOldName
+            let label = (payload["label"] as? String ?? payload["name"] as? String ?? "").trimmingCharacters(in: .whitespaces)
             let username = (payload["username"] as? String ?? "").trimmingCharacters(in: .whitespaces)
             let password = payload["password"] as? String ?? ""
 
@@ -144,16 +172,33 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
                 }
             }
             if !updated {
-                _ = store.addAccount(label: label, username: username, password: password)
+                // If not matched by ID/name, check if an account with this username exists
+                updated = store.updateAccount(id: username) { a in
+                    a.label = label.isEmpty ? username : label
+                    a.username = username
+                    if !password.isEmpty { a.password = password }
+                }
+            }
+            if !updated {
+                _ = store.addAccount(label: label.isEmpty ? username : label, username: username, password: password)
                 logToUi(tag: "auth", msg: "حساب جدید «\(label.isEmpty ? username : label)» اضافه شد")
             } else {
-                logToUi(tag: "auth", msg: "حساب «\(label.isEmpty ? username : label)» ویرایش شد")
+                logToUi(tag: "auth", msg: "حساب «\(label.isEmpty ? username : label)» ذخیره شد")
             }
+            store.deduplicateAccounts()
             syncAccounts()
+            syncState()
+            Watcher.shared.poke()
         case "delete_account":
-            if let accId = payload["id"] as? String ?? payload["name"] as? String {
+            let rawId = (payload["id"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
+            let rawName = (payload["name"] as? String)?.trimmingCharacters(in: .whitespaces) ?? ""
+            let accId = !rawId.isEmpty ? rawId : rawName
+            if !accId.isEmpty {
                 _ = ConfigStore.shared.removeAccount(id: accId)
+                ConfigStore.shared.deduplicateAccounts()
                 syncAccounts()
+                syncState()
+                Watcher.shared.poke()
                 logToUi(tag: "auth", msg: "حساب کاربری حذف گردید")
             }
         case "test_account":
@@ -165,7 +210,11 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
                     let client = PortalClient(portalUrl: store.config.portalUrl)
                     let reply = client.login(username: acc.username, password: acc.password)
                     let tag = reply.kind == .online ? "ok" : "err"
-                    self.logToUi(tag: tag, msg: "نتیجه آزمایش: \(reply.kind.rawValue) — \(reply.message)")
+                    let msg = "نتیجه آزمایش: \(reply.kind.rawValue) — \(reply.message)"
+                    self.logToUi(tag: tag, msg: msg)
+                    DispatchQueue.main.async {
+                        self.evalJs("showToast(\(self.jsonString(msg)), \(self.jsonString(tag == "ok" ? "success" : "error")));")
+                    }
                 }
             }
         case "save_settings":
@@ -264,5 +313,28 @@ public final class DashboardController: NSObject, WKScriptMessageHandler {
             return "{}"
         }
         return str
+    }
+}
+
+extension DashboardController: WKUIDelegate {
+    public func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = "UniLink — سامانه اتصال دانشگاه"
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "تأیید و حذف")
+        alert.addButton(withTitle: "انصراف")
+        let response = alert.runModal()
+        completionHandler(response == .alertFirstButtonReturn)
+    }
+
+    public func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = NSAlert()
+        alert.messageText = "UniLink"
+        alert.informativeText = message
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "باشه")
+        alert.runModal()
+        completionHandler()
     }
 }

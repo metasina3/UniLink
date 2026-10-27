@@ -59,6 +59,13 @@ cat << 'EOF' > "$APP_BUNDLE/Contents/Info.plist"
   <true/>
   <key>NSRequiresAquaSystemAppearance</key>
   <false/>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+    <key>NSAllowsLocalNetworking</key>
+    <true/>
+  </dict>
 </dict>
 </plist>
 EOF

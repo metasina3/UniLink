@@ -238,10 +238,17 @@ class SettingsController(NSObject if HAS_PYOBJC else object):
         found = False
         if acc_id:
             for a in self.store.accounts:
-                if a.id == acc_id or a.username == acc_id:
+                if a.id == acc_id or a.username == acc_id or a.label == acc_id:
                     self.store.update_account(a.id, label=label or user, username=user, password=pw or a.password)
                     found = True
                     self.log_to_ui("auth", f"حساب «{label or user}» ویرایش شد")
+                    break
+        if not found:
+            for a in self.store.accounts:
+                if a.username == user:
+                    self.store.update_account(a.id, label=label or user, username=user, password=pw or a.password)
+                    found = True
+                    self.log_to_ui("auth", f"حساب «{label or user}» ذخیره شد")
                     break
         if not found:
             self.store.add_account(label or user, user, pw)

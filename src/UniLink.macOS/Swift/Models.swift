@@ -113,6 +113,8 @@ public struct NetContext {
     public var ip: String = ""
     public var gateway: String = ""
     public var dns: [String] = []
+    public var domain: String = ""
+    public var interface: String = "en0"
     public var online: Bool = false
     public var portalReachable: Bool = false
     public var campus: Bool = false
@@ -121,9 +123,11 @@ public struct NetContext {
 
     public var summary: String {
         var parts: [String] = []
+        parts.append("iface=\(interface)")
         parts.append("wifi=\(ssid.isEmpty ? "—" : ssid)")
         if !ip.isEmpty { parts.append("ip=\(ip)") }
         if !gateway.isEmpty { parts.append("gw=\(gateway)") }
+        if !domain.isEmpty { parts.append("domain=\(domain)") }
         parts.append(online ? "online" : "offline")
         parts.append(campus ? "campus" : "not-campus")
         return parts.joined(separator: " ")
@@ -135,6 +139,8 @@ public struct WatcherState {
     public var online: Bool = false
     public var ssid: String = ""
     public var ip: String = ""
+    public var domain: String = ""
+    public var interface: String = "en0"
     public var status: String = "idle" // idle | campus | logging-in | online | failed | paused | error
     public var message: String = "آماده"
     public var activeAccount: String = ""

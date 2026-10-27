@@ -45,15 +45,9 @@
       display: flex;
     }
 
-    /* macOS Window Drag Area */
+    /* macOS Window Drag Area handled natively by WindowDragView */
     .titlebar-drag {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 38px;
-      -webkit-app-region: drag;
-      z-index: 1000;
+      display: none;
     }
 
     /* Sidebar */
@@ -1054,6 +1048,7 @@
     <div class="modal">
       <div class="modal-title" id="modalAccountTitle">افزودن حساب دانشجویی جدید</div>
 
+      <input type="hidden" id="acc_id" value="">
       <input type="hidden" id="acc_old_name" value="">
 
       <div class="form-group">
@@ -1084,6 +1079,23 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeAccountModal()">انصراف</button>
         <button class="btn btn-primary" onclick="submitAccountForm()">ذخیره حساب</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" id="deleteModal">
+    <div class="modal" style="max-width: 420px;">
+      <div class="modal-title" style="color: #f87171; display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        حذف حساب دانشجویی
+      </div>
+      <p id="deleteModalDesc" style="color: var(--text-muted); font-size: 13.5px; margin: 12px 0 22px 0; line-height: 1.6;">
+        آیا از حذف این حساب مطمئن هستید؟ این عملیات قابل بازگشت نیست.
+      </p>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">انصراف</button>
+        <button class="btn btn-danger" onclick="confirmDeleteAccount()">بله، حذف شود</button>
       </div>
     </div>
   </div>
@@ -1134,6 +1146,7 @@
     // Modal
     function openAddAccountModal() {
       document.getElementById('modalAccountTitle').innerText = 'افزودن حساب دانشجویی جدید';
+      document.getElementById('acc_id').value = '';
       document.getElementById('acc_old_name').value = '';
       document.getElementById('acc_name').value = '';
       document.getElementById('acc_user').value = '';
@@ -1142,13 +1155,14 @@
       document.getElementById('accountModal').classList.add('open');
     }
 
-    function openEditAccountModal(name) {
-      const p = accountsData.find(a => a.name === name);
+    function openEditAccountModal(id) {
+      const p = accountsData.find(a => a.id === id || a.username === id || a.name === id);
       if (!p) return;
-      document.getElementById('modalAccountTitle').innerText = 'ویرایش حساب «' + name + '»';
-      document.getElementById('acc_old_name').value = name;
-      document.getElementById('acc_name').value = p.name;
-      document.getElementById('acc_user').value = p.username;
+      document.getElementById('modalAccountTitle').innerText = 'ویرایش حساب «' + (p.name || p.username) + '»';
+      document.getElementById('acc_id').value = p.id || '';
+      document.getElementById('acc_old_name').value = p.name || '';
+      document.getElementById('acc_name').value = p.name || '';
+      document.getElementById('acc_user').value = p.username || '';
       document.getElementById('acc_pass').value = p.password || '';
       document.getElementById('acc_gate').value = p.gate_url || '';
       document.getElementById('accountModal').classList.add('open');
@@ -1159,20 +1173,21 @@
     }
 
     function submitAccountForm() {
+      const id = document.getElementById('acc_id').value.trim();
       const old_name = document.getElementById('acc_old_name').value.trim();
       const name = document.getElementById('acc_name').value.trim();
       const username = document.getElementById('acc_user').value.trim();
       const password = document.getElementById('acc_pass').value;
       const gate_url = document.getElementById('acc_gate').value.trim();
 
-      if (!name || !username || !password) {
-        showToast('لطفاً عنوان، نام کاربری و رمز عبور را وارد کنید', 'error');
+      if (!username || !password) {
+        showToast('لطفاً نام کاربری و رمز عبور را وارد کنید', 'error');
         return;
       }
 
-      postToPython('save_account', { old_name, name, username, password, gate_url });
+      postToPython('save_account', { id, old_name, name: (name || username), username, password, gate_url });
       closeAccountModal();
-      showToast('حساب با موفقیت ذخیره شد', 'success');
+      showToast(id ? 'حساب کاربری با موفقیت ویرایش شد' : 'حساب کاربری جدید افزوده شد', 'success');
     }
 
     function togglePassVisibility(id) {
@@ -1182,6 +1197,10 @@
 
     // Actions
     function handleHeroAction() {
+      const btn = document.getElementById('btnHeroAction');
+      btn.disabled = true;
+      setTimeout(() => { btn.disabled = false; }, 2000);
+
       if (appState.online) {
         postToPython('logout');
         showToast('درخواست خروج ارسال شد', 'info');
@@ -1205,21 +1224,46 @@
       showToast('در حال سنجش ارتباط با گیت دانشگاه…', 'info');
     }
 
-    function setActiveAccount(name) {
-      postToPython('set_active_account', { name });
+    function setActiveAccount(id, name) {
+      postToPython('set_active_account', { id: id, name: name });
       showToast('حساب فعال تغییر کرد', 'success');
     }
 
-    function deleteAccount(name) {
-      if (confirm('آیا از حذف حساب «' + name + '» مطمئن هستید؟')) {
-        postToPython('delete_account', { name });
-        showToast('حساب حذف شد', 'info');
+    let accountToDelete = null;
+
+    function deleteAccount(id, name) {
+      accountToDelete = { id, name };
+      const label = name || id;
+      const descEl = document.getElementById('deleteModalDesc');
+      if (descEl) {
+        descEl.innerText = 'آیا از حذف حساب «' + label + '» مطمئن هستید؟ این عملیات قابل بازگشت نیست.';
+      }
+      const modal = document.getElementById('deleteModal');
+      if (modal) {
+        modal.classList.add('open');
+      } else if (confirm('آیا از حذف حساب «' + label + '» مطمئن هستید؟')) {
+        postToPython('delete_account', { id: id, name: name });
+        showToast('حساب با موفقیت حذف شد', 'info');
       }
     }
 
-    function testAccount(name) {
-      postToPython('test_account', { name });
-      showToast('در حال تست اعتبار حساب «' + name + '»…', 'info');
+    function closeDeleteModal() {
+      accountToDelete = null;
+      const modal = document.getElementById('deleteModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function confirmDeleteAccount() {
+      if (!accountToDelete) return;
+      const { id, name } = accountToDelete;
+      postToPython('delete_account', { id: id, name: name });
+      closeDeleteModal();
+      showToast('حساب کاربری با موفقیت حذف شد', 'info');
+    }
+
+    function testAccount(id, name) {
+      postToPython('test_account', { id: id, name: name });
+      showToast('در حال تست اعتبار حساب…', 'info');
     }
 
     function detectCurrentWifi() {
@@ -1295,15 +1339,15 @@
       
       const btn = document.getElementById('btnHeroAction');
       if (appState.online) {
-        document.getElementById('heroTitle').innerText = 'متصل به اینترنت دانشگاه';
-        document.getElementById('heroDesc').innerText = 'نشست فعال است و دسترسی برقرار می‌باشد.';
+        document.getElementById('heroTitle').innerText = 'متصل به اینترنت دانشگاه (سبز)';
+        document.getElementById('heroDesc').innerText = 'نشست فعال است و دسترسی به اینترنت برقرار می‌باشد.';
         btn.className = 'btn btn-danger';
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> خروج از گیت`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> خروج از گیت (قطع اتصال)`;
       } else if (appState.status === 'campus') {
-        document.getElementById('heroTitle').innerText = 'شبکه دانشگاه شناسایی شد';
-        document.getElementById('heroDesc').innerText = 'پورتال گیت آماده دریافت نام کاربری و رمز عبور است.';
+        document.getElementById('heroTitle').innerText = 'شبکه دانشگاه شناسایی شد (آماده ورود)';
+        document.getElementById('heroDesc').innerText = 'پورتال آماده است. برای برقراری ارتباط دکمه زیر را بزنید.';
         btn.className = 'btn btn-primary';
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ورود به اینترنت`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ورود به اینترنت (اتصال فوری)`;
       } else if (appState.status === 'logging-in') {
         document.getElementById('heroTitle').innerText = 'در حال برقراری اتصال…';
         document.getElementById('heroDesc').innerText = appState.message || 'در حال ارسال درخواست احراز هویت به گیت…';
@@ -1357,12 +1401,12 @@
             </div>
           </div>
           <div class="account-actions">
-            ${!isActive ? `<button class="btn btn-secondary btn-sm" onclick="setActiveAccount('${escapeHtml(p.name)}')">فعال‌سازی</button>` : ''}
-            <button class="btn btn-secondary btn-sm" onclick="testAccount('${escapeHtml(p.name)}')">تست ورود</button>
-            <button class="btn btn-icon" onclick="openEditAccountModal('${escapeHtml(p.name)}')">
+            ${!isActive ? `<button class="btn btn-secondary btn-sm" onclick="setActiveAccount('${escapeHtml(p.id)}', '${escapeHtml(p.name)}')">فعال‌سازی</button>` : ''}
+            <button class="btn btn-secondary btn-sm" onclick="testAccount('${escapeHtml(p.id)}', '${escapeHtml(p.name)}')">تست ورود</button>
+            <button class="btn btn-icon" onclick="openEditAccountModal('${escapeHtml(p.id)}')">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
-            <button class="btn btn-icon" onclick="deleteAccount('${escapeHtml(p.name)}')">
+            <button class="btn btn-icon" onclick="deleteAccount('${escapeHtml(p.id)}', '${escapeHtml(p.name)}')">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>

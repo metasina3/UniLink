@@ -92,6 +92,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        DashboardController.shared.show()
+        return true
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         Watcher.shared.stop()
     }

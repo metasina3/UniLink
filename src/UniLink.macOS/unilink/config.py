@@ -127,7 +127,15 @@ class ConfigStore:
         return accs[0] if accs else None
 
     def add_account(self, label: str, username: str, password: str) -> Account:
-        acc = Account(label=label or username, username=username, password=password)
+        clean_user = username.strip()
+        clean_label = label.strip()
+        for a in self.accounts:
+            if a.username == clean_user:
+                self.update_account(a.id, label=clean_label or clean_user, password=password)
+                for updated_a in self.accounts:
+                    if updated_a.id == a.id:
+                        return updated_a
+        acc = Account(label=clean_label or clean_user, username=clean_user, password=password)
         raw_list = self.data.setdefault("accounts", [])
         raw_list.append(asdict(acc))
         if not self.data.get("active_account_id"):
@@ -137,7 +145,7 @@ class ConfigStore:
 
     def update_account(self, account_id: str, **changes: Any) -> bool:
         for raw in self.data.get("accounts", []):
-            if raw.get("id") == account_id or raw.get("username") == account_id:
+            if raw.get("id") == account_id or raw.get("username") == account_id or raw.get("label") == account_id:
                 raw.update(changes)
                 self.save()
                 return True

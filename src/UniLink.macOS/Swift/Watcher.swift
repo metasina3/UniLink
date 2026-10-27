@@ -49,6 +49,32 @@ public final class Watcher {
         }
     }
 
+    public func forceLoginNow() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let store = ConfigStore.shared
+            let cfg = store.config
+            let active = store.activeAccount()
+            let activeLabel = active?.label ?? "بدون حساب"
+
+            self.updateState { s in
+                s.status = "logging-in"
+                s.message = "در حال ورود فوری با حساب \(activeLabel)..."
+            }
+            DashboardController.shared.logToUi(tag: "auth", msg: "ارسال درخواست ورود فوری با حساب «\(activeLabel)»...")
+
+            self.attemptLogin(portalUrl: cfg.portalUrl)
+        }
+    }
+
+    public func logoutNow() {
+        updateState { s in
+            s.status = "campus"
+            s.online = false
+            s.message = "از گیت خارج شدید"
+        }
+        backoffInterval = 10.0
+    }
+
     private func scheduleNext(delay: Double) {
         DispatchQueue.main.async {
             self.timer?.invalidate()
@@ -68,7 +94,23 @@ public final class Watcher {
         }
     }
 
+    private var isTicking = false
+
     public func tick() {
+        lock.lock()
+        if isTicking {
+            lock.unlock()
+            return
+        }
+        isTicking = true
+        lock.unlock()
+
+        defer {
+            lock.lock()
+            isTicking = false
+            lock.unlock()
+        }
+
         let store = ConfigStore.shared
         let cfg = store.config
 
@@ -89,6 +131,8 @@ public final class Watcher {
             s.online = ctx.online
             s.ssid = ctx.ssid
             s.ip = ctx.ip
+            s.domain = ctx.domain
+            s.interface = ctx.interface
             s.activeAccount = activeLabel
         }
 
@@ -208,7 +252,7 @@ public final class Watcher {
         }
     }
 
-    private func notify(_ title: String, _ message: String, _ subtitle: String = "") {
+    public func notify(_ title: String, _ message: String, _ subtitle: String = "") {
         let script = "display notification \"\(message)\" with title \"\(title)\" subtitle \"\(subtitle)\""
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")

@@ -29,47 +29,60 @@ public final class MenuBarController: NSObject {
 
     private func buildMenu() {
         menu = NSMenu()
+        menu.autoenablesItems = false
+
+        let itemDashboard = NSMenuItem(title: "🖥️ داشبورد و کنترل‌پنل...", action: #selector(openDashboard), keyEquivalent: "d")
+        itemDashboard.target = self
+        itemDashboard.isEnabled = true
+        menu.addItem(itemDashboard)
+        menu.addItem(NSMenuItem.separator())
 
         itemStatus = NSMenuItem(title: "در حال بررسی...", action: nil, keyEquivalent: "")
+        itemStatus.isEnabled = false
         itemNet = NSMenuItem(title: "شبکه: —", action: nil, keyEquivalent: "")
+        itemNet.isEnabled = false
         itemAccount = NSMenuItem(title: "حساب: —", action: nil, keyEquivalent: "")
+        itemAccount.isEnabled = false
 
         menu.addItem(itemStatus)
         menu.addItem(itemNet)
         menu.addItem(itemAccount)
         menu.addItem(NSMenuItem.separator())
 
-        let itemLogin = NSMenuItem(title: "ورود همین حالا", action: #selector(doLogin), keyEquivalent: "")
+        let itemLogin = NSMenuItem(title: "ورود به اینترنت (اتصال)", action: #selector(doLogin), keyEquivalent: "l")
         itemLogin.target = self
+        itemLogin.isEnabled = true
         menu.addItem(itemLogin)
 
-        let itemLogout = NSMenuItem(title: "خروج از پورتال", action: #selector(doLogout), keyEquivalent: "")
+        let itemLogout = NSMenuItem(title: "خروج از پورتال (قطع اتصال)", action: #selector(doLogout), keyEquivalent: "o")
         itemLogout.target = self
+        itemLogout.isEnabled = true
         menu.addItem(itemLogout)
 
-        itemAccountsMenu = NSMenuItem(title: "تغییر حساب", action: nil, keyEquivalent: "")
+        itemAccountsMenu = NSMenuItem(title: "انتخاب و تغییر حساب", action: nil, keyEquivalent: "")
+        itemAccountsMenu.isEnabled = true
         let accountsSubmenu = NSMenu()
+        accountsSubmenu.autoenablesItems = false
         itemAccountsMenu.submenu = accountsSubmenu
         menu.addItem(itemAccountsMenu)
 
         itemToggleAuto = NSMenuItem(title: "اتصال خودکار", action: #selector(toggleAuto), keyEquivalent: "")
         itemToggleAuto.target = self
+        itemToggleAuto.isEnabled = true
         menu.addItem(itemToggleAuto)
 
         menu.addItem(NSMenuItem.separator())
 
-        let itemDashboard = NSMenuItem(title: "داشبورد و تنظیمات UniLink...", action: #selector(openDashboard), keyEquivalent: ",")
-        itemDashboard.target = self
-        menu.addItem(itemDashboard)
-
-        let itemProbe = NSMenuItem(title: "بررسی وضعیت پورتال (Probe)", action: #selector(doProbe), keyEquivalent: "")
+        let itemProbe = NSMenuItem(title: "بررسی وضعیت پورتال (Probe)", action: #selector(doProbe), keyEquivalent: "p")
         itemProbe.target = self
+        itemProbe.isEnabled = true
         menu.addItem(itemProbe)
 
         menu.addItem(NSMenuItem.separator())
 
         let itemQuit = NSMenuItem(title: "خروج از UniLink", action: #selector(quitApp), keyEquivalent: "q")
         itemQuit.target = self
+        itemQuit.isEnabled = true
         menu.addItem(itemQuit)
 
         statusItem.menu = menu
@@ -111,19 +124,19 @@ public final class MenuBarController: NSObject {
 
         let statusFa: String
         switch snap.status {
-        case "online": statusFa = "متصل به اینترنت دانشگاه"
-        case "campus": statusFa = "شبکه دانشگاه — نیاز به ورود"
+        case "online": statusFa = "متصل به اینترنت دانشگاه (سبز)"
+        case "campus": statusFa = "شبکه دانشگاه — آماده ورود"
         case "logging-in": statusFa = "در حال ورود..."
         case "failed": statusFa = "ورود ناموفق"
         case "paused": statusFa = "غیرفعال"
         default: statusFa = "خارج از شبکه دانشگاه"
         }
 
-        itemStatus.title = "وضعیت: \(statusFa)"
+        itemStatus.title = "● وضعیت: \(statusFa)"
         let ssid = snap.ssid.isEmpty ? "بدون اتصال Wi-Fi" : snap.ssid
         let ip = snap.ip.isEmpty ? "—" : snap.ip
         itemNet.title = "شبکه: \(ssid) (\(ip))"
-        itemAccount.title = "حساب: \(active?.label ?? "تعریف نشده")"
+        itemAccount.title = "حساب فعال: \(active?.label ?? "تعریف نشده")"
         itemToggleAuto.state = store.config.autoConnect ? .on : .off
 
         // Refresh accounts submenu
@@ -131,12 +144,16 @@ public final class MenuBarController: NSObject {
             submenu.removeAllItems()
             let all = store.accounts
             if all.isEmpty {
-                submenu.addItem(NSMenuItem(title: "هیچ حسابی ثبت نشده", action: nil, keyEquivalent: ""))
+                let emptyItem = NSMenuItem(title: "هیچ حسابی ثبت نشده", action: nil, keyEquivalent: "")
+                emptyItem.isEnabled = false
+                submenu.addItem(emptyItem)
             } else {
                 for a in all {
-                    let item = NSMenuItem(title: "\(a.label) (\(a.username))", action: #selector(switchAccount(_:)), keyEquivalent: "")
+                    let mark = (active?.id == a.id) ? "✓ " : "   "
+                    let item = NSMenuItem(title: "\(mark)\(a.label) (\(a.username))", action: #selector(switchAccount(_:)), keyEquivalent: "")
                     item.target = self
                     item.representedObject = a.id
+                    item.isEnabled = true
                     if active?.id == a.id {
                         item.state = .on
                     }
@@ -149,7 +166,14 @@ public final class MenuBarController: NSObject {
     }
 
     @objc private func doLogin() {
-        Watcher.shared.poke()
+        let store = ConfigStore.shared
+        guard let active = store.activeAccount() else {
+            DashboardController.shared.show()
+            DashboardController.shared.logToUi(tag: "err", msg: "هیچ حسابی برای ورود انتخاب نشده است")
+            return
+        }
+        DashboardController.shared.logToUi(tag: "auth", msg: "درخواست ورود با حساب «\(active.label)» صادر شد")
+        Watcher.shared.forceLoginNow()
     }
 
     @objc private func doLogout() {
@@ -158,7 +182,8 @@ public final class MenuBarController: NSObject {
             DispatchQueue.global(qos: .userInitiated).async {
                 let client = PortalClient(portalUrl: store.config.portalUrl)
                 _ = client.logout(username: active.username)
-                Watcher.shared.poke()
+                Watcher.shared.logoutNow()
+                DashboardController.shared.logToUi(tag: "auth", msg: "خروج از حساب «\(active.label)» انجام شد")
             }
         }
     }
@@ -175,7 +200,7 @@ public final class MenuBarController: NSObject {
         guard let id = sender.representedObject as? String else { return }
         _ = ConfigStore.shared.setActiveAccount(id: id)
         refreshMenu()
-        Watcher.shared.poke()
+        Watcher.shared.forceLoginNow()
     }
 
     @objc private func openDashboard() {
@@ -183,7 +208,16 @@ public final class MenuBarController: NSObject {
     }
 
     @objc private func doProbe() {
-        Watcher.shared.poke()
+        DispatchQueue.global(qos: .userInitiated).async {
+            let store = ConfigStore.shared
+            let client = PortalClient(portalUrl: store.config.portalUrl)
+            let res = client.probe()
+            let msg = "پورتال: \(store.config.portalUrl) | کد پاسخ: HTTP \(res.status) | سایبروم: \(res.isCyberoam ? "بله" : "خیر")"
+            DashboardController.shared.logToUi(tag: "sys", msg: msg)
+            let notifyMsg = res.ok ? "پورتال دانشگاه در دسترس است (کد \(res.status))" : "پورتال در دسترس نیست (کد \(res.status))"
+            Watcher.shared.notify("UniLink Probe", notifyMsg, store.config.portalUrl)
+            Watcher.shared.poke()
+        }
     }
 
     @objc private func quitApp() {

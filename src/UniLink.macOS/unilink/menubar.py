@@ -133,9 +133,17 @@ class UniLinkApp(rumps.App if HAS_RUMPS else object):
             self.title = "●" if status == "online" else "○"
 
     def _reset_submenu(self, item: rumps.MenuItem) -> None:
-        if getattr(item, "_menu", None) is None:
-            item.add(rumps.MenuItem("..."))
-        item.clear()
+        try:
+            for k in list(item.keys()):
+                del item[k]
+        except Exception:
+            pass
+        menu_obj = getattr(item, "_menu", None)
+        if menu_obj is not None:
+            try:
+                menu_obj.removeAllItems()
+            except Exception:
+                pass
 
     def refresh_menu(self):
         snap = self.watcher.snapshot()

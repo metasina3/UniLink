@@ -1,15 +1,8 @@
 import Foundation
 
-public final class PortalClient: NSObject, URLSessionDelegate {
+public final class PortalClient: NSObject {
     public let portalUrl: String
-    private lazy var session: URLSession = {
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 10.0
-        config.timeoutIntervalForResource = 15.0
-        config.httpShouldSetCookies = true
-        config.httpCookieAcceptPolicy = .always
-        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
-    }()
+    public let interface: String
 
     public static let quotaPhrases = [
         "your data transfer has been exceeded",
@@ -36,61 +29,89 @@ public final class PortalClient: NSObject, URLSessionDelegate {
         "نام کاربری یا رمز عبور اشتباه"
     ]
 
-    public init(portalUrl: String) {
-        self.portalUrl = portalUrl.hasSuffix("/") ? portalUrl : portalUrl + "/"
-        super.init()
-    }
+    private static let formAllowedChars: CharacterSet = {
+        var set = CharacterSet.alphanumerics
+        set.insert(charactersIn: "-_.~")
+        return set
+    }()
 
-    public func urlSession(
-        _ session: URLSession,
-        didReceive challenge: URLAuthenticationChallenge,
-        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
-    ) {
-        // Automatically trust university campus self-signed certificates
-        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-           let trust = challenge.protectionSpace.serverTrust {
-            completionHandler(.useCredential, URLCredential(trust: trust))
-        } else {
-            completionHandler(.performDefaultHandling, nil)
-        }
+    public init(portalUrl: String, interface: String? = nil) {
+        self.portalUrl = portalUrl.hasSuffix("/") ? portalUrl : portalUrl + "/"
+        self.interface = interface ?? NetInfo.findPrimaryInterface()
+        super.init()
     }
 
     private func timestamp() -> String {
         String(Int64(Date().timeIntervalSince1970 * 1000))
     }
 
-    public func probe() -> (ok: Bool, isCyberoam: Bool, status: Int) {
-        guard let url = URL(string: portalUrl) else { return (false, false, 0) }
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 5.0
-        let sema = DispatchSemaphore(value: 0)
-        var result = (ok: false, isCyberoam: false, status: 0)
+    private func urlEncode(_ str: String) -> String {
+        return str.addingPercentEncoding(withAllowedCharacters: Self.formAllowedChars) ?? str
+    }
 
-        session.dataTask(with: req) { data, response, _ in
-            defer { sema.signal() }
-            if let http = response as? HTTPURLResponse {
-                result.status = http.statusCode
-                result.ok = (200..<400).contains(http.statusCode)
-                if let data = data, let text = String(data: data, encoding: .utf8)?.lowercased() {
-                    result.isCyberoam = text.contains("httpclient.js") || text.contains("login.xml") || text.contains("mode=191")
-                }
+    public func curlRequest(
+        path: String,
+        method: String = "GET",
+        data: [String: String]? = nil,
+        timeout: Double = 6.0
+    ) -> (status: Int, body: String, error: String) {
+        let fullUrl = portalUrl + path
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/curl")
+
+        var args = [
+            "-k", "-s",
+            "-m", String(timeout),
+            "--interface", interface,
+            "-A", "UniLink/1.3.0 (macOS; Swift Native)",
+            "-w", "\n%{http_code}"
+        ]
+
+        if method == "POST" {
+            args.append(contentsOf: ["-X", "POST"])
+            if let data = data {
+                let body = data.map { "\($0.key)=\(self.urlEncode($0.value))" }.joined(separator: "&")
+                args.append(contentsOf: ["-d", body])
             }
-        }.resume()
+        }
 
-        _ = sema.wait(timeout: .now() + 6.0)
-        return result
+        args.append(fullUrl)
+        process.arguments = args
+
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            let outData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+            let fullStr = String(data: outData, encoding: .utf8) ?? ""
+            let errData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+            let errStr = String(data: errData, encoding: .utf8) ?? ""
+
+            var lines = fullStr.components(separatedBy: "\n")
+            var statusCode = 0
+            if let last = lines.popLast(), let code = Int(last.trimmingCharacters(in: .whitespaces)) {
+                statusCode = code
+            }
+            let body = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            return (statusCode, body, errStr)
+        } catch {
+            return (0, "", error.localizedDescription)
+        }
+    }
+
+    public func probe() -> (ok: Bool, isCyberoam: Bool, status: Int) {
+        let res = curlRequest(path: "", method: "GET", timeout: 4.0)
+        let isCyber = res.body.lowercased().contains("httpclient.js") ||
+                      res.body.lowercased().contains("login.xml") ||
+                      res.body.lowercased().contains("mode=191")
+        return ((200..<400).contains(res.status), isCyber, res.status)
     }
 
     public func login(username: String, password: String) -> PortalReply {
-        guard let url = URL(string: portalUrl + "login.xml") else {
-            return PortalReply(kind: .unknown, message: "آدرس پورتال نامعتبر است")
-        }
-
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        req.setValue("UniLink/1.2.1 (macOS; Swift Native)", forHTTPHeaderField: "User-Agent")
-
         let cleanUser = username.replacingOccurrences(of: "'", with: "''")
         let fields: [String: String] = [
             "mode": "191",
@@ -100,84 +121,46 @@ public final class PortalClient: NSObject, URLSessionDelegate {
             "producttype": "0"
         ]
 
-        let bodyString = fields.map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? $0.value)" }.joined(separator: "&")
-        req.httpBody = bodyString.data(using: .utf8)
-
-        let sema = DispatchSemaphore(value: 0)
-        var reply = PortalReply(kind: .unknown, message: "پاسخی از سرور دریافت نشد")
-
-        session.dataTask(with: req) { data, _, error in
-            defer { sema.signal() }
-            if let error = error {
-                reply = PortalReply(kind: .unknown, message: "خطای ارتباط: \(error.localizedDescription)")
-                return
-            }
-            guard let data = data, let text = String(data: data, encoding: .utf8) else {
-                reply = PortalReply(kind: .unknown, message: "پاسخ خالی")
-                return
-            }
-            reply = self.parseReply(xmlText: text)
-        }.resume()
-
-        _ = sema.wait(timeout: .now() + 10.0)
-        return reply
+        let res = curlRequest(path: "login.xml", method: "POST", data: fields, timeout: 7.0)
+        if res.status == 0 {
+            return PortalReply(kind: .unknown, message: "عدم برقراری ارتباط با پورتال دانشگاه")
+        }
+        return parseReply(xmlText: res.body)
     }
 
     public func heartbeat(username: String) -> PortalReply {
         let ts = timestamp()
-        let encodedUser = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? username
-        let urlStr = portalUrl + "live.xml?mode=192&username=\(encodedUser)&a=\(ts)&producttype=0"
-        guard let url = URL(string: urlStr) else {
-            return PortalReply(kind: .unknown, message: "آدرس نامعتبر است")
+        let encodedUser = urlEncode(username)
+
+        // 1. Cyberoam /live endpoint
+        let path1 = "live?mode=192&username=\(encodedUser)&a=\(ts)&producttype=0"
+        let res1 = curlRequest(path: path1, method: "GET", timeout: 5.0)
+        if (200..<400).contains(res1.status) && !res1.body.isEmpty {
+            return parseReply(xmlText: res1.body)
         }
 
-        var req = URLRequest(url: url)
-        req.setValue("UniLink/1.2.1 (macOS; Swift Native)", forHTTPHeaderField: "User-Agent")
+        // 2. Fallback to /live.xml
+        let path2 = "live.xml?mode=192&username=\(encodedUser)&a=\(ts)&producttype=0"
+        let res2 = curlRequest(path: path2, method: "GET", timeout: 5.0)
+        if (200..<400).contains(res2.status) && !res2.body.isEmpty {
+            return parseReply(xmlText: res2.body)
+        }
 
-        let sema = DispatchSemaphore(value: 0)
-        var reply = PortalReply(kind: .unknown, message: "بررسی نشست انجام نشد")
-
-        session.dataTask(with: req) { data, _, _ in
-            defer { sema.signal() }
-            if let data = data, let text = String(data: data, encoding: .utf8) {
-                reply = self.parseReply(xmlText: text)
-            }
-        }.resume()
-
-        _ = sema.wait(timeout: .now() + 8.0)
-        return reply
+        return parseReply(xmlText: res1.body)
     }
 
     public func logout(username: String) -> PortalReply {
-        guard let url = URL(string: portalUrl + "logout.xml") else {
-            return PortalReply(kind: .unknown, message: "آدرس نامعتبر است")
-        }
-
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
         let fields: [String: String] = [
             "mode": "193",
             "username": username,
             "a": timestamp(),
             "producttype": "0"
         ]
-        let bodyString = fields.map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? $0.value)" }.joined(separator: "&")
-        req.httpBody = bodyString.data(using: .utf8)
-
-        let sema = DispatchSemaphore(value: 0)
-        var reply = PortalReply(kind: .signedOut, message: "خروج انجام شد")
-
-        session.dataTask(with: req) { data, _, _ in
-            defer { sema.signal() }
-            if let data = data, let text = String(data: data, encoding: .utf8) {
-                reply = self.parseReply(xmlText: text)
-            }
-        }.resume()
-
-        _ = sema.wait(timeout: .now() + 6.0)
-        return reply
+        let res = curlRequest(path: "logout.xml", method: "POST", data: fields, timeout: 5.0)
+        if (200..<400).contains(res.status) && !res.body.isEmpty {
+            return parseReply(xmlText: res.body)
+        }
+        return PortalReply(kind: .signedOut, message: "خروج از حساب انجام شد")
     }
 
     public func parseReply(xmlText: String) -> PortalReply {
@@ -226,7 +209,7 @@ public final class PortalClient: NSObject, URLSessionDelegate {
             return PortalReply(kind: .signedOut, message: message.isEmpty ? "خارج از حساب" : message, status: status, raw: cleaned)
         }
 
-        return PortalReply(kind: .unknown, message: message.isEmpty ? status : message, status: status, raw: cleaned)
+        return PortalReply(kind: .unknown, message: message.isEmpty ? (status.isEmpty ? "پاسخ نامشخص" : status) : message, status: status, raw: cleaned)
     }
 
     private func findXmlTag(tag: String, in text: String) -> String? {
