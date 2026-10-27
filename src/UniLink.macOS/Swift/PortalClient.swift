@@ -63,7 +63,7 @@ public final class PortalClient: NSObject {
             "-k", "-s",
             "-m", String(timeout),
             "--interface", interface,
-            "-A", "UniLink/1.3.0 (macOS; Swift Native)",
+            "-A", "UniLink/1.3.1 (macOS; Swift Native)",
             "-w", "\n%{http_code}"
         ]
 
