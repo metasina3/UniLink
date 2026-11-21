@@ -48,28 +48,22 @@ jobs:
       - name: Test and publish Windows x64
         shell: pwsh
         run: ./build.ps1 -Runtime win-x64
-      - name: Inspect native Windows UI with synthetic data
-        shell: pwsh
-        run: |
-          $ui = Join-Path $PWD 'artifacts/ui-checks'
-          New-Item -ItemType Directory -Force $ui | Out-Null
-          $exe = Join-Path $PWD 'release/win-x64/UniLink.exe'
-          $process = Start-Process -FilePath $exe -ArgumentList @('--ui-check', ('"' + $ui + '"')) -Wait -PassThru
-          Get-ChildItem $ui -Filter '*.txt' | Get-Content
-          if ($process.ExitCode -ne 0) { throw "UI checks failed: $($process.ExitCode)" }
-      - name: Package executable and exact source
+      - name: Stage and test the standalone executable
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         shell: pwsh
         run: |
           $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
           if ($env:GITHUB_EVENT_NAME -eq 'release' -and $env:RELEASE_TAG -ne "windows-v$version") { throw 'Release tag does not match source version.' }
-          Get-ChildItem release/win-x64 -Filter '*.pdb' | Remove-Item
-          Compress-Archive -Path release/win-x64/* -DestinationPath "artifacts/UniLink-$version-Windows-x64.zip" -Force
-          git archive --format=zip --prefix=UniLink/ --output="artifacts/UniLink-$version-Windows-Source.zip" HEAD -- build.ps1 Directory.Build.props global.json LICENSE notices src/UniLink.Core src/UniLink.Windows tests/UniLink.Tests
-          if ($LASTEXITCODE -ne 0) { throw 'Source archive failed.' }
-          $sums = Get-ChildItem artifacts -Filter '*.zip' | Sort-Object Name | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
-          Set-Content -LiteralPath artifacts/SHA256SUMS.txt -Value $sums -Encoding ascii
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+          $standalone = Join-Path $PWD 'artifacts/windows'
+          $ui = Join-Path $PWD 'artifacts/ui-checks'
+          New-Item -ItemType Directory -Force $standalone, $ui | Out-Null
+          Copy-Item release/win-x64/UniLink.exe $standalone
+          $exe = Join-Path $standalone 'UniLink.exe'
+          $process = Start-Process -FilePath $exe -WorkingDirectory $standalone -ArgumentList @('--ui-check', ('"' + $ui + '"')) -Wait -PassThru
+          Get-ChildItem $ui -Filter '*.txt' | Get-Content
+          if ($process.ExitCode -ne 0) { throw "UI checks failed: $($process.ExitCode)" }
       - name: Keep UI report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -77,13 +71,11 @@ jobs:
           name: windows-ui-checks
           path: artifacts/ui-checks/
           retention-days: 7
-      - name: Keep release packages
+      - name: Keep Windows executable
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: release-packages
-          path: |
-            artifacts/*.zip
-            artifacts/SHA256SUMS.txt
+          name: windows-executable
+          path: artifacts/windows/UniLink.exe
           if-no-files-found: error
           retention-days: 14
 
@@ -97,11 +89,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: release-packages
+          name: windows-executable
           path: packages
-      - name: Attach tested packages to the published release
+      - name: Attach the tested Windows executable
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$RELEASE_TAG" packages/*.zip packages/SHA256SUMS.txt
+        run: gh release upload "$RELEASE_TAG" packages/UniLink.exe
