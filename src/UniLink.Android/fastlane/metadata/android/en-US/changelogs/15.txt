@@ -1,0 +1,1 @@
+New: a Check for update button and a GitHub project link in Settings > About. The check only runs when you tap it.

@@ -1,0 +1,1 @@
+Fixes: the Activity log card no longer runs under the tab bar, the tab bar is opaque so scrolled text no longer shows through it, and scrolling content now fades softly at the top edge.

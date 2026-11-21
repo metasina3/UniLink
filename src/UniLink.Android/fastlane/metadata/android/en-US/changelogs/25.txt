@@ -1,0 +1,1 @@
+New: a quiet notice when a newer version is available (once per version, can be switched off in Settings).

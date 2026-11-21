@@ -3,7 +3,27 @@ name: Windows build and release
 on:
   push:
     branches: [main]
+    paths:
+      - src/UniLink.Core/**
+      - src/UniLink.Windows/**
+      - tests/UniLink.Tests/**
+      - build.ps1
+      - global.json
+      - Directory.Build.props
+      - LICENSE
+      - notices/**
+      - .github/workflows/windows.yml
   pull_request:
+    paths:
+      - src/UniLink.Core/**
+      - src/UniLink.Windows/**
+      - tests/UniLink.Tests/**
+      - build.ps1
+      - global.json
+      - Directory.Build.props
+      - LICENSE
+      - notices/**
+      - .github/workflows/windows.yml
   release:
     types: [published]
   workflow_dispatch:
@@ -17,6 +37,7 @@ env:
 
 jobs:
   build:
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'windows-v')
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
@@ -40,10 +61,10 @@ jobs:
         shell: pwsh
         run: |
           $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
-          if ('${{ github.event_name }}' -eq 'release' -and $env:RELEASE_TAG -ne "v$version") { throw 'Release tag does not match source version.' }
+          if ($env:GITHUB_EVENT_NAME -eq 'release' -and $env:RELEASE_TAG -ne "windows-v$version") { throw 'Release tag does not match source version.' }
           Get-ChildItem release/win-x64 -Filter '*.pdb' | Remove-Item
           Compress-Archive -Path release/win-x64/* -DestinationPath "artifacts/UniLink-$version-Windows-x64.zip" -Force
-          git archive --format=zip --prefix=UniLink/ --output="artifacts/UniLink-$version-Source.zip" HEAD
+          git archive --format=zip --prefix=UniLink/ --output="artifacts/UniLink-$version-Windows-Source.zip" HEAD -- build.ps1 Directory.Build.props global.json LICENSE notices src/UniLink.Core src/UniLink.Windows tests/UniLink.Tests
           if ($LASTEXITCODE -ne 0) { throw 'Source archive failed.' }
           $sums = Get-ChildItem artifacts -Filter '*.zip' | Sort-Object Name | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)" }
           Set-Content -LiteralPath artifacts/SHA256SUMS.txt -Value $sums -Encoding ascii
@@ -67,7 +88,7 @@ jobs:
           retention-days: 14
 
   attach-release:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'windows-v')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -1,0 +1,1 @@
+New: remaining data per account, shown as a bar with the renewal date (read from the university user portal when you tap Refresh data usage). The portal certificate is pinned and only you trigger the request.

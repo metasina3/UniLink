@@ -1,0 +1,1 @@
+New: Use this account button, password-rejected card on the Connection tab, and a switch-after-choosing setting.

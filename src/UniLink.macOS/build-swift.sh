@@ -28,6 +28,7 @@ fi
 if [ -f "$DIR/Resources/AppIcon.icns" ]; then
   cp "$DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 fi
+cp "$DIR/../../LICENSE" "$APP_BUNDLE/Contents/Resources/LICENSE.txt"
 
 # 3. Info.plist
 cat << 'EOF' > "$APP_BUNDLE/Contents/Info.plist"

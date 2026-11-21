@@ -1,0 +1,20 @@
+UniLink signs you in to Sophos / Cyberoam captive portals (built for Urmia University's UUWN network) and keeps the session alive from a lightweight background service. You don't have to open a browser, and a VPN doesn't break it.
+
+<b>Features</b>
+• VPN-safe: portal traffic is bound to the physical Wi-Fi interface; the system proxy is ignored.
+• Multiple accounts, tried in your order. When the monthly allowance is used up, that account is skipped until the next month and the next one is used.
+• Smart error handling: a rejected password blocks only that account; network errors are retried with growing delays.
+• Certificate pinning: the portal's self-signed certificate is shown once, you approve it, and only that certificate is accepted afterwards. No password is sent before approval.
+• Redirects are refused, so the portal can't bounce your credentials elsewhere.
+• Encrypted storage with a key held in the Android Keystore. Nothing leaves the phone except the sign-in to the portal itself.
+• Foreground service, optional start on boot, Quick Settings tile and a small home-screen widget.
+• Battery tools: separate switches for keeping the CPU awake and the Wi-Fi radio at full power, plus keepalive health counters.
+• Persian (right-to-left) and English interface, glass-style light and dark themes.
+• In-memory activity log you can share; passwords and student numbers are never logged.
+
+<b>Permissions</b>
+Location is needed only because Android hides the Wi-Fi name from apps without it; it is never stored or sent. Notifications show the status. "Unrestricted battery" stops Android from pausing the service.
+
+No ads, no trackers, no Google services. Free software under the GPL-3.0-or-later license.
+
+UniLink is an independent, unofficial project and is not affiliated with any university or with Sophos. Use it only with accounts you are allowed to use.

@@ -3,7 +3,17 @@ name: macOS build and release
 on:
   push:
     branches: [main]
+    paths:
+      - src/UniLink.macOS/**
+      - tests/UniLink.macOS.Tests/**
+      - build-macos.sh
+      - .github/workflows/macos.yml
   pull_request:
+    paths:
+      - src/UniLink.macOS/**
+      - tests/UniLink.macOS.Tests/**
+      - build-macos.sh
+      - .github/workflows/macos.yml
   release:
     types: [published]
   workflow_dispatch:
@@ -13,6 +23,7 @@ permissions:
 
 jobs:
   test-and-build:
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'macos-v')
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
@@ -29,35 +40,31 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r src/UniLink.macOS/requirements.txt
 
-      - name: Run macOS unit and integration tests
+      - name: Test and package the macOS app
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          python3 -m unittest discover tests/UniLink.macOS.Tests
-
-      - name: Package macOS App Bundle (Swift Native)
-        run: |
-          mkdir -p artifacts dist
-          chmod +x src/UniLink.macOS/build-swift.sh
-          ./src/UniLink.macOS/build-swift.sh
-          
-          APP_PATH="$HOME/Applications/UniLink.app"
-          if [ -d "$APP_PATH" ]; then
-            cd "$HOME/Applications"
-            zip -rq "$GITHUB_WORKSPACE/artifacts/UniLink-1.3.0-macOS.zip" "UniLink.app"
-            cd "$GITHUB_WORKSPACE"
-            shasum -a 256 artifacts/UniLink-1.3.0-macOS.zip > artifacts/UniLink-1.3.0-macOS.zip.sha256
-          else
-            echo "UniLink.app build failed" && exit 1
+          version=$(awk '/CFBundleShortVersionString/ {getline; gsub(/<[^>]+>|[[:space:]]/, ""); print; exit}' src/UniLink.macOS/build-swift.sh)
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Could not read the macOS source version."
+            exit 1
           fi
+          if [[ "$GITHUB_EVENT_NAME" == release && "$RELEASE_TAG" != "macos-v$version" ]]; then
+            echo "::error::Release tag does not match the macOS source version."
+            exit 1
+          fi
+          ./build-macos.sh "$version"
 
       - name: Keep macOS package artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-release-package
           path: artifacts/
+          if-no-files-found: error
           retention-days: 14
 
   attach-release:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'macos-v')
     needs: test-and-build
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -75,4 +82,4 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release upload "$RELEASE_TAG" artifacts/UniLink-macOS.zip*
+          gh release upload "$RELEASE_TAG" artifacts/UniLink-*-macOS.*

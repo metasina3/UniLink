@@ -1,0 +1,1 @@
+New: data bar for the account in use on the Connection tab. The bar shows data left and changes colour as it runs low.

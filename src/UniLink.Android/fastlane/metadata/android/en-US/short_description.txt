@@ -1,0 +1,1 @@
+Stay signed in to Sophos/Cyberoam captive-portal Wi-Fi, even with a VPN on.

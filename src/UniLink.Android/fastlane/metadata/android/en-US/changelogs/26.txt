@@ -1,0 +1,1 @@
+New: most-data-first sign-in (optional), a notice when no account works, data left on the widget and tile. Faster sign-in after joining Wi-Fi; Android is told the network works after sign-in.

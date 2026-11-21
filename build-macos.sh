@@ -28,7 +28,7 @@ DMG_FILE="artifacts/UniLink-${VERSION}-macOS.dmg"
 rm -f "$DMG_FILE"
 hdiutil create -volname "UniLink" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_FILE"
 rm -rf "$DMG_STAGE"
-shasum -a 256 "$DMG_FILE" > "${DMG_FILE}.sha256"
+(cd artifacts && shasum -a 256 "$(basename "$DMG_FILE")" > "$(basename "$DMG_FILE").sha256")
 
 echo "==> Packaging macOS Release ZIP (UniLink-${VERSION}-macOS.zip)..."
 ZIP_FILE="$SCRIPT_DIR/artifacts/UniLink-${VERSION}-macOS.zip"
@@ -36,7 +36,7 @@ rm -f "$ZIP_FILE"
 cd "$HOME/Applications"
 zip -rq "$ZIP_FILE" "UniLink.app"
 cd "$SCRIPT_DIR"
-shasum -a 256 "artifacts/UniLink-${VERSION}-macOS.zip" > "artifacts/UniLink-${VERSION}-macOS.zip.sha256"
+(cd artifacts && shasum -a 256 "$(basename "$ZIP_FILE")" > "$(basename "$ZIP_FILE").sha256")
 
 echo "==> Done! Artifacts generated in artifacts/:"
 ls -lh artifacts/UniLink-${VERSION}-macOS.*

@@ -1,0 +1,1 @@
+Midnight is now a true AMOLED black theme. Accounts show initials avatars. Settings choices fill the row. Delete is red, the activity log is easier to read, nothing is hidden behind the tab bar, and the Connection tab uses a Wi-Fi icon.

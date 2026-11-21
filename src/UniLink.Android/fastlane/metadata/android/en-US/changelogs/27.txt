@@ -1,0 +1,1 @@
+Fix: sign-in no longer stalls when the portal ignores the quick live check; Connect responds at once; Pause during sign-in is respected.

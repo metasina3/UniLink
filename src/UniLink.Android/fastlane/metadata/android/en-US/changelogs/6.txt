@@ -1,0 +1,3 @@
+New glass-style interface with light and dark themes and an animated status badge.
+New home-screen widget: status plus a connect/pause button.
+Free software: now licensed GPL-3.0-or-later; ready for F-Droid.
