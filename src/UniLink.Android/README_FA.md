@@ -4,7 +4,7 @@
 
 **همیشه به وای‌فای دانشگاه وصل بمان؛ خودکار، پایدار و بدون باز کردن مرورگر.**
 
-[**دانلود آخرین APK**](../../releases/latest) · [English](README.md) · [تغییرات نسخه‌ها](CHANGELOG.md)
+[**دانلود آخرین APK**](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) · [English](README.md) · [تغییرات نسخه‌ها](CHANGELOG.md)
 
 <img src="docs/showcase.png" alt="تصاویر UniLink" width="900">
 
@@ -47,7 +47,7 @@ UniLink وارد پرتال‌های Sophos / Cyberoam می‌شود (برای �
 
 ## نصب
 
-1. [آخرین Release](../../releases/latest) را روی گوشی باز کن و فایل `UniLink-vX.Y.Z.apk` را دانلود کن.
+1. [آخرین Release](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) را روی گوشی باز کن و فایل `UniLink-vX.Y.Z.apk` را دانلود کن.
 2. فایل را باز کن و اگر اندروید خواست، **Install unknown apps** را اجازه بده.
 3. این اجازه‌ها را بده: **Location** (اندروید نام وای‌فای را فقط به برنامه‌هایی می‌دهد که آن را دارند؛ موقعیت هرگز ذخیره یا ارسال نمی‌شود)، **Notifications** و **Unrestricted battery** تا اندروید سرویس را متوقف نکند.
 4. تب **Accounts** ← **+** ← شمارهٔ دانشجویی و رمز را وارد کن.
@@ -97,17 +97,17 @@ UniLink یک سرویس پس‌زمینه دارد، پس مقداری باتر�
 
 ## ساخت از سورس
 
-نیازی به Android Studio نیست؛ مخزن را در گیت‌هاب بگذار تا workflow **Build APK** آن را بسازد.
+گردش‌کار **Android build and release** پروژهٔ Gradle را روی گیت‌هاب می‌سازد.
 
-- هر push روی `main` یک APK release کوچک‌شده (`UniLink-release-apk`) و یک APK دیباگ جایگزین (`UniLink-debug-apk`) می‌سازد (**Actions ← آخرین اجرا ← Artifacts**).
-- زدن یک تگ مثل `v1.0.2` یک **GitHub Release** هم با APK و SHA-256 آن منتشر می‌کند:
+- هر تغییر اندروید روی `main` یک APK release کوچک‌شده (`UniLink-release-apk`) و یک APK دیباگ جایگزین (`UniLink-debug-apk`) می‌سازد (**Actions ← آخرین اجرا ← Artifacts**).
+- زدن یک تگ مثل `android-v1.15.0` یک **GitHub Release** هم با APK و SHA-256 آن منتشر می‌کند:
 
 ```bash
-git tag v1.0.2
-git push origin v1.0.2
+git tag android-v1.15.0
+git push origin android-v1.15.0
 ```
 
-محلی: پوشه را در Android Studio باز کن (JDK 17 و Android SDK 35) و Run بزن، یا از Gradle Wrapper داخل مخزن استفاده کن (`./gradlew assembleRelease`، نسخهٔ Gradle 8.9).
+محلی: پوشهٔ `src/UniLink.Android` را در Android Studio باز کن (JDK 17 و Android SDK 35) و Run بزن، یا از Gradle Wrapper داخل مخزن استفاده کن (`./gradlew assembleRelease`، نسخهٔ Gradle 8.9).
 
 ساخت ابتدا تست‌های واحد (تحلیل‌گر پرتال و صفحهٔ مصرف، ترتیب حساب‌ها، مقایسهٔ نسخه) را اجرا می‌کند؛ اگر تستی رد شود ساخت متوقف می‌شود.
 
@@ -123,6 +123,10 @@ APK انتشار با کلید خصوصی پروژه امضا می‌شود که
 ## نقشهٔ راه
 
 ورود/خروج پروفایل شبکه · بهینه‌سازی بیشتر باتری · ثبت در IzzyOnDroid و F-Droid (در حال انجام)
+
+## توسعه‌دهنده
+
+نسخهٔ اندروید را مهران ([@Mrzzan05](https://github.com/Mrzzan05)) توسعه داده است. نسخه‌های قبلی در [آرشیو ریپوی اندروید](https://github.com/Mrzzan05/UniLink-Android/releases) در دسترس‌اند.
 
 ## مجوز
 

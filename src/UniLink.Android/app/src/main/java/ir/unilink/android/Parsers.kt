@@ -117,6 +117,11 @@ object UsageParser {
 
 
 object Versions {
+    private val androidReleaseTag = Regex("""android-v(\d+\.\d+\.\d+)""")
+
+    fun androidReleaseVersion(tag: String): String? =
+        androidReleaseTag.matchEntire(tag)?.groupValues?.get(1)
+
     /** True when [latest] (like "v1.8.1") is a higher version than [current] (like "1.8.0"). */
     fun isNewer(latest: String, current: String): Boolean {
         fun parts(v: String) = v.removePrefix("v").split('.', '-', '+')

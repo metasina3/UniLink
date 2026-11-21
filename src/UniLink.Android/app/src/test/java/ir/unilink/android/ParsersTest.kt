@@ -116,6 +116,15 @@ class PortalParserTest {
 
 class VersionsTest {
     @Test
+    fun recognizesOnlyStableAndroidReleaseTags() {
+        assertEquals("1.14.0", Versions.androidReleaseVersion("android-v1.14.0"))
+        assertNull(Versions.androidReleaseVersion("windows-v2.0.0"))
+        assertNull(Versions.androidReleaseVersion("macos-v2.0.0"))
+        assertNull(Versions.androidReleaseVersion("v1.3.1"))
+        assertNull(Versions.androidReleaseVersion("android-v2.0.0-rc.1"))
+    }
+
+    @Test
     fun comparesVersionsNumerically() {
         assertTrue(Versions.isNewer("v1.10.0", "1.9.2"))
         assertTrue(Versions.isNewer("1.11.0", "1.10.6"))

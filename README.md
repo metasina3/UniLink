@@ -1,129 +1,41 @@
-# UniLink 1.3.0
+# UniLink
 
-[دانلود نسخه‌ها و سورس (Releases)](https://github.com/metasina3/UniLink/releases) · [راهنمای فارسی آفلاین](docs/README_FA.html) · [راهنمای نسخه مک (macOS Guide)](docs/MACOS_GUIDE.md)
+UniLink keeps university captive-portal sessions connected on Windows, macOS, and Android. The default campus network is `UUWN` at Urmia University.
 
-UniLink is an automated, multi-platform client for university captive portals (Cyberoam / Sophos / Ivanti). It features automatic campus network detection, seamless sign-in, background keepalive heartbeats, and multi-account quota failover.
+## Downloads · دانلود
 
-Default network: `UUWN` · Default portal: `https://192.168.100.40:8090/` and `https://gate1.urmia.ac.ir:8090/`.
+| Platform | Release | Installer | Guide |
+| --- | --- | --- | --- |
+| Windows 10/11 x64 | [v1.2.1](https://github.com/metasina3/UniLink/releases/tag/v1.2.1) | [Windows ZIP](https://github.com/metasina3/UniLink/releases/download/v1.2.1/UniLink-1.2.1-Windows-x64.zip) | [راهنمای فارسی](docs/README_FA.html) |
+| macOS 12+ | [v1.3.1](https://github.com/metasina3/UniLink/releases/tag/v1.3.1) | [macOS DMG](https://github.com/metasina3/UniLink/releases/download/v1.3.1/UniLink-1.3.1-macOS.dmg) | [macOS guide](docs/MACOS_GUIDE.md) |
+| Android 8+ | [v1.14.0](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) | [Android APK](https://github.com/metasina3/UniLink/releases/download/android-v1.14.0/UniLink-v1.14.0.apk) | [راهنمای فارسی](src/UniLink.Android/README_FA.md) · [English](src/UniLink.Android/README.md) |
 
----
+Extract the Windows ZIP and run `UniLink.exe`. The ZIP includes the .NET runtime. On macOS, open the DMG and drag `UniLink.app` to Applications. On Android, open the APK to install.
 
-## Platform Editions
+[All UniLink releases](https://github.com/metasina3/UniLink/releases) · [Earlier Android releases](https://github.com/Mrzzan05/UniLink-Android/releases)
 
-| Feature | Windows Edition | macOS Edition |
-| :--- | :--- | :--- |
-| **Interface** | Native WinForms Dark GUI + System Tray | Native Menu Bar (`NSStatusBar`) + Modern Dark Glassmorphism Dashboard (`WKWebView`) |
-| **Runtime** | Self-contained .NET 8 (Zero setup required) | Embedded Python 3 app bundle / CLI (Zero external deps) |
-| **Startup** | Windows Run Registry key | macOS `LaunchAgent` (`ir.unilink.desktop.plist`) |
-| **Security** | Windows DPAPI encrypted settings | Secure local storage (`0600` permissions) |
-| **Network Engine** | Hardware interface & Win32 IP_UNICAST_IF binding | Native SystemConfiguration, BSSID detection & VPN fake-IP bypass |
-| **Multi-Account** | Default + sequential failover | Active + sequential quota failover |
+## Source and builds
 
----
+All editions live on `main`. Each platform has its own source, build, and release version.
 
-## macOS Edition
+| Edition | Source | Build from the repository root |
+| --- | --- | --- |
+| Windows | [Windows app](src/UniLink.Windows), [.NET core](src/UniLink.Core), [tests](tests/UniLink.Tests) | `./build.ps1` with PowerShell and the .NET 8 SDK |
+| macOS | [Swift app and Python tools](src/UniLink.macOS), [tests](tests/UniLink.macOS.Tests) | `./src/UniLink.macOS/build-swift.sh` with Xcode Command Line Tools |
+| Android | [Gradle project](src/UniLink.Android) | `cd src/UniLink.Android` and `./gradlew assembleDebug` with JDK 17 and Android SDK 35 |
 
-### 1. Build and Run App Bundle
-Build `~/Applications/UniLink.app` (includes embedded runtime):
-```bash
-python3 src/UniLink.macOS/install.py build
-open ~/Applications/UniLink.app
-```
+See [release instructions](docs/RELEASING.md) for platform tags and signing. See the [protocol reference](docs/PROTOCOL.md) and [Windows network behavior](docs/NETWORK_BEHAVIOR.md) for implementation details.
 
-### 2. Autostart on Login
-```bash
-python3 src/UniLink.macOS/install.py autostart
-# To remove:
-python3 src/UniLink.macOS/install.py noautostart
-```
+## Contributors
 
-### 3. Headless CLI
-```bash
-# Check network and gate status
-python3 -m unilink.cli status
-python3 -m unilink.cli probe
+| Edition | Developer |
+| --- | --- |
+| Windows | [@metasina3](https://github.com/metasina3) |
+| macOS | [Matin Sojoudi (@Matinsojoudi)](https://github.com/Matinsojoudi) |
+| Android | [@Mrzzan05](https://github.com/Mrzzan05) |
 
-# Manage accounts
-python3 -m unilink.cli accounts add --label "حساب ۱" --username "1401..."
-python3 -m unilink.cli accounts list
+## Licenses
 
-# Login / Logout
-python3 -m unilink.cli login
-python3 -m unilink.cli logout
+Windows and macOS use the [MIT license](LICENSE). The Android project uses [GNU GPL v3 or later](src/UniLink.Android/LICENSE). See [notices](notices) for Windows third-party notices.
 
-# Open GUI Dashboard
-python3 -m unilink.cli gui
-```
-
----
-
-## Windows Edition
-
-Download the Windows x64 release and run `UniLink.exe`.
-Requires Windows 10 (version 2004+) or Windows 11 on x64. Contains its own .NET runtime; no separate installation or admin privileges needed.
-
-Build locally with .NET 8 SDK:
-```powershell
-./build.ps1
-```
-
----
-
-## Repository Structure
-
-```
-UniLink/
-├── .github/
-│   └── workflows/
-│       ├── windows.yml             # Windows x64 build, test & release workflow
-│       └── macos.yml               # macOS app bundle build, test & release workflow
-├── docs/
-│   ├── CHANGELOG.md                # Release changelog
-│   ├── MACOS_GUIDE.md              # Full macOS guide & troubleshooting
-│   ├── NETWORK_BEHAVIOR.md         # Low-level network adapter binding rules
-│   ├── PROTOCOL.md                 # Sophos/Cyberoam captive portal protocol
-│   └── README_FA.html              # راهنمای فارسی جامع
-├── notices/                        # Third-party licenses & SDK notices
-├── src/
-│   ├── UniLink.Core/               # .NET Core protocol models & engine
-│   ├── UniLink.Windows/            # Windows WinForms client & DPAPI store
-│   └── UniLink.macOS/              # macOS MenuBar, Glass Dashboard & CLI
-│       ├── install.py              # macOS bundle & LaunchAgent builder
-│       └── unilink/
-│           ├── client.py           # Captive portal HTTP client (191/192/193)
-│           ├── config.py           # Multi-account & settings store
-│           ├── netinfo.py          # macOS Wi-Fi & network inspector
-│           ├── watcher.py          # Background auto-connect daemon
-│           ├── menubar.py          # Native macOS Menu Bar status app
-│           ├── window.py           # WKWebView modern glass window
-│           ├── cli.py              # Terminal commands & CLI
-│           └── gui/                # Dark glassmorphism dashboard UI
-└── tests/
-    ├── UniLink.Tests/              # .NET test harness
-    └── UniLink.macOS.Tests/        # macOS Python test suite (mock portal server)
-```
-
----
-
-## Testing
-
-### macOS Tests
-```bash
-python3 -m unittest discover tests/UniLink.macOS.Tests
-```
-Passes 15 tests covering protocol parsing, quota phrases, login, heartbeat, failover, and secure storage against a local mock portal server.
-
-### Windows / Core Tests
-```sh
-dotnet run --project tests/UniLink.Tests/UniLink.Tests.csproj -c Release
-```
-Passes 49 tests verifying credential handling, synthetic TLS Schannel keys, physical adapter eligibility, and multi-account rotation.
-
----
-
-## Protocol Reference
-UniLink speaks the Sophos / Cyberoam credential web-client protocol:
-- **Login**: `POST /login.xml` (`mode=191`, `username`, `password`, `producttype=0`, `a=<timestamp_ms>`)
-- **Heartbeat**: `GET /live.xml?username=...` or `/live` (`mode=192`)
-- **Logout**: `POST /logout.xml` (`mode=193`)
-- **Quota Exceeded Detection**: Automatic recognition of university exhaustion messages (`"your data transfer has been exceeded"`, `"حجم شما به پایان"`, etc.).
+UniLink is an independent project. Use it with accounts you are authorized to use and follow your institution's network policy.

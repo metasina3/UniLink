@@ -4,13 +4,12 @@
 
 **Stay signed in to your university Wi-Fi: automatically, reliably, and without touching the browser.**
 
-[![Build APK](../../actions/workflows/build-apk.yml/badge.svg)](../../actions/workflows/build-apk.yml)
-[![Release](https://img.shields.io/github/v/release/Mrzzan05/UniLink-Android)](../../releases/latest)
+[![Android build](https://github.com/metasina3/UniLink/actions/workflows/android.yml/badge.svg)](https://github.com/metasina3/UniLink/actions/workflows/android.yml)
 ![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-3DDC84?logo=android&logoColor=white)
 ![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
 
-[**Download the latest APK**](../../releases/latest) · [فارسی](README_FA.md) · [Changelog](CHANGELOG.md)
+[**Download the latest APK**](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) · [فارسی](README_FA.md) · [Changelog](CHANGELOG.md)
 
 <img src="docs/showcase.png" alt="UniLink screenshots" width="900">
 
@@ -51,7 +50,7 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 
 ## Install
 
-1. Open the [latest release](../../releases/latest) on your phone and download `UniLink-vX.Y.Z.apk`.
+1. Open the [latest release](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) on your phone and download `UniLink-vX.Y.Z.apk`.
 2. Open the file and allow **Install unknown apps** if Android asks.
 3. Allow **Location** (Android only reveals the Wi-Fi name to apps that have it; location is never stored or sent), **Notifications**, and **Unrestricted battery** so Android doesn't pause the service.
 4. **Accounts** tab → **+** → add your student number and password.
@@ -101,17 +100,17 @@ Open an issue and paste the **Share log** output from the **Activity** tab. Pass
 
 ## Build it yourself
 
-You don't need Android Studio: push the repo to GitHub and the **Build APK** workflow builds it for you.
+The **Android build and release** workflow builds this Gradle project on GitHub.
 
-- Every push to `main` produces a minified release APK (`UniLink-release-apk`) and an unminified debug APK (`UniLink-debug-apk`, a fallback) under **Actions → latest run → Artifacts**.
-- Pushing a tag such as `v1.0.2` also publishes a **GitHub Release** with the APK and its SHA-256:
+- Pushing an Android change to `main` produces a minified release APK (`UniLink-release-apk`) and an unminified debug APK (`UniLink-debug-apk`, a fallback) under **Actions → latest run → Artifacts**.
+- Pushing a tag such as `android-v1.15.0` also publishes a **GitHub Release** with the APK and its SHA-256:
 
 ```bash
-git tag v1.0.2
-git push origin v1.0.2
+git tag android-v1.15.0
+git push origin android-v1.15.0
 ```
 
-Locally: open the folder in Android Studio (JDK 17, Android SDK 35) and press Run, or use the included Gradle wrapper (`./gradlew assembleRelease`, Gradle 8.9).
+Locally: open `src/UniLink.Android` in Android Studio (JDK 17, Android SDK 35) and press Run, or use the included Gradle wrapper (`./gradlew assembleRelease`, Gradle 8.9).
 
 The build first runs the unit tests (portal and usage-page parsers, account ordering, version comparison); a failing test stops the build.
 
@@ -127,6 +126,10 @@ Release APKs are signed with the project's private release key, kept in GitHub S
 ## Roadmap
 
 Import/export of network profiles · more battery tuning · IzzyOnDroid and F-Droid listing (in progress)
+
+## Credits
+
+The Android edition was developed by [@Mrzzan05](https://github.com/Mrzzan05). Earlier releases are available in the [original Android repository](https://github.com/Mrzzan05/UniLink-Android/releases).
 
 ## License
 
