@@ -1,0 +1,1 @@
+Smoother interface: a sliding navigation bar whose selected tab expands, direction-aware tab transitions, a status badge that morphs and pops between states, spring-based press feedback, light haptics, staggered card entry, and Back returning to the first tab. Includes the 1.6.1 battery fix.

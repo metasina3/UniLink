@@ -1,0 +1,2 @@
+Fix: sign-in and keepalives no longer stall when a VPN is on. UniLink retries over the VPN route and notices when the VPN starts or stops.
+Polish: clearer language chips, log in a glass panel, stronger Pause button.

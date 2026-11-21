@@ -1,0 +1,1 @@
+New: first-run tour with a Skip button and a per-brand battery guide in Settings.

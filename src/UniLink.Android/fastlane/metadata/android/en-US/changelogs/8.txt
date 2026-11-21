@@ -1,0 +1,1 @@
+Security: releases are now signed with a private key (the old one was public). Uninstall 1.4.x and reinstall once; updates then install normally.

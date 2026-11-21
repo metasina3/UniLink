@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tabs -->
+    <string name="tab_connection">Connection</string>
+    <string name="tab_accounts">Accounts</string>
+    <string name="tab_networks">Networks</string>
+    <string name="tab_activity">Activity</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Common -->
+    <string name="common_save">Save</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_allow">Allow</string>
+
+    <!-- Connection -->
+    <string name="conn_network">Network</string>
+    <string name="conn_account">Account</string>
+    <string name="conn_last_keepalive">Last keepalive</string>
+    <string name="conn_next_check">Next check</string>
+    <string name="conn_connect">Connect</string>
+    <string name="conn_pause">Pause &amp; sign out</string>
+    <string name="conn_keepalives">Keepalives</string>
+    <string name="conn_keepalives_value">%1$d ok · %2$d failed</string>
+    <string name="conn_net_events">Network events</string>
+    <string name="conn_late">Late wake-ups</string>
+    <string name="conn_late_value">%1$d (longest %2$d s)</string>
+
+    <!-- Certificate card -->
+    <string name="cert_changed_title">Portal certificate changed</string>
+    <string name="cert_review_title">Review portal certificate</string>
+    <string name="cert_body">Compare this fingerprint with the certificate your browser shows on the normal university login page (or ask IT) before trusting it. Until you approve, no password is sent.</string>
+    <string name="cert_network">Network</string>
+    <string name="cert_sha256">SHA-256</string>
+    <string name="cert_trust">Trust this certificate</string>
+
+    <!-- Setup checklist -->
+    <string name="setup_title">Get ready (%1$d/%2$d)</string>
+    <string name="setup_account_title">Add an account</string>
+    <string name="setup_account_hint">Student number and password, on the Accounts tab.</string>
+    <string name="setup_open_accounts">Open Accounts</string>
+    <string name="setup_location_title">Allow location</string>
+    <string name="setup_location_hint">Android only shows the Wi-Fi name to apps with this. It is never stored or sent.</string>
+    <string name="setup_notif_title">Allow notifications</string>
+    <string name="setup_notif_hint">Shows the connection status in the notification shade.</string>
+    <string name="setup_battery_title">Unrestricted battery</string>
+    <string name="setup_battery_hint">Stops Android from pausing UniLink while the screen is off.</string>
+    <string name="setup_cert_title">Trust the portal certificate</string>
+    <string name="setup_cert_hint">Appears here the first time you are on campus Wi-Fi. Nothing is sent before you approve it.</string>
+
+    <!-- Accounts -->
+    <string name="acc_no_groups">No network groups yet. Add one on the Networks tab first.</string>
+    <string name="acc_none">No accounts in \"%1$s\". Tap + to add one.</string>
+    <string name="acc_add_cd">Add account</string>
+    <string name="acc_more_cd">More</string>
+    <string name="tag_default">Default</string>
+    <string name="tag_in_use">In use</string>
+    <string name="tag_disabled">Disabled</string>
+    <string name="tag_password_rejected">Password rejected</string>
+    <string name="tag_quota_used">Quota used this month</string>
+    <string name="menu_edit">Edit</string>
+    <string name="menu_set_default">Set as default</string>
+    <string name="menu_move_up">Move up</string>
+    <string name="menu_move_down">Move down</string>
+    <string name="menu_disable">Disable</string>
+    <string name="menu_enable">Enable</string>
+    <string name="menu_clear_block">Clear account block</string>
+    <string name="acc_dialog_add">Add account</string>
+    <string name="acc_dialog_edit">Edit account</string>
+    <string name="acc_field_name">Name (optional)</string>
+    <string name="acc_field_user">Student number</string>
+    <string name="acc_field_pass">Password</string>
+    <string name="acc_show">Show</string>
+    <string name="acc_hide">Hide</string>
+    <string name="acc_delete_title">Delete account?</string>
+    <string name="acc_delete_text">\"%1$s\" will be removed from %2$s.</string>
+
+    <!-- Networks -->
+    <string name="net_wifi_names">Wi-Fi names</string>
+    <string name="net_accounts">Accounts</string>
+    <string name="net_keepalive">Keepalive</string>
+    <string name="net_seconds">%1$d s</string>
+    <string name="net_timezone">Time zone</string>
+    <string name="net_pinned">Certificate pinned</string>
+    <string name="net_not_pinned">Not pinned</string>
+    <string name="net_portal_only_note">Also matches by reachable, pinned portal</string>
+    <string name="net_forget_certs">Forget certificates</string>
+    <string name="net_add_cd">Add network group</string>
+    <string name="net_dialog_add">Add network group</string>
+    <string name="net_dialog_edit">Edit network group</string>
+    <string name="net_field_name">Name</string>
+    <string name="net_field_ssids">Wi-Fi names (one per line, exact match)</string>
+    <string name="net_field_urls">Portal URLs (https, one per line)</string>
+    <string name="net_portal_only_check">Also match by a reachable, pinned portal (when the Wi-Fi name is unknown)</string>
+    <string name="net_field_keepalive">Keepalive seconds (30–180)</string>
+    <string name="net_field_tz">Time zone (for monthly reset)</string>
+    <string name="net_field_phrases">Extra quota-exceeded phrases (one per line)</string>
+    <string name="net_phrases_support">Optional. The university\'s standard message is built in.</string>
+    <string name="err_name">Give the network a name.</string>
+    <string name="err_url_empty">Add at least one portal URL.</string>
+    <string name="err_url_https">Portal URLs must be valid https:// addresses.</string>
+    <string name="err_keepalive">Keepalive must be between 30 and 180 seconds.</string>
+    <string name="err_tz">Unknown time zone. Example: Asia/Tehran</string>
+    <string name="err_ssid">Add a Wi-Fi name, or enable portal-only matching.</string>
+    <string name="net_delete_title">Delete network group?</string>
+    <string name="net_delete_text">\"%1$s\" and its %2$d account(s) will be removed from this phone.</string>
+
+    <!-- Activity -->
+    <string name="act_share_log">Share log</string>
+    <string name="act_clear">Clear</string>
+    <string name="act_note">Passwords and student numbers are never written to this log. It is kept in memory only. Log lines are always in English so they are easy to share.</string>
+    <string name="act_empty">Nothing yet.</string>
+    <string name="act_share_subject">UniLink diagnostic log</string>
+    <string name="act_share_chooser">Share log</string>
+
+    <!-- Settings -->
+    <string name="set_auto_title">Automatic sign-in</string>
+    <string name="set_auto_sub">Sign in as soon as a configured Wi-Fi network is detected.</string>
+    <string name="set_boot_title">Start when the phone boots</string>
+    <string name="set_boot_sub">Starts the background service after a restart.</string>
+    <string name="set_wake_title">Keep CPU awake</string>
+    <string name="set_wake_sub">Keeps the processor running with the screen off so keepalive timers fire on time. The most reliable setting; uses more battery. Only held while you are signed in to campus Wi-Fi.</string>
+    <string name="set_wifi_title">Keep Wi-Fi at full power</string>
+    <string name="set_wifi_sub">Stops the Wi-Fi radio from power-saving with the screen off. If battery use is high, try turning this off first, then watch the Connection tab for failed or late keepalives. Only held while you are signed in to campus Wi-Fi.</string>
+    <string name="set_perm_title">Permissions</string>
+    <string name="set_loc_title">Location (reads the Wi-Fi name)</string>
+    <string name="set_loc_sub">Needed to recognise UUWN.</string>
+    <string name="set_notif_title">Notifications</string>
+    <string name="set_notif_sub">Shows the status in the notification shade.</string>
+    <string name="set_batt_title">Unrestricted battery</string>
+    <string name="set_batt_sub">Stops Android from pausing UniLink in the background.</string>
+    <string name="set_ok">OK</string>
+    <string name="set_lang_title">Language</string>
+    <string name="set_lang_system">System</string>
+    <string name="set_lang_en">English</string>
+    <string name="set_lang_fa">فارسی</string>
+    <string name="set_about_title">About</string>
+    <string name="set_about_text">UniLink for Android %1$s. Accounts and settings are encrypted with a key held in the Android Keystore and never leave this phone. Only add accounts you are allowed to use.</string>
+    <string name="set_exit">Exit UniLink</string>
+
+    <!-- Engine status -->
+    <string name="st_stopped">Stopped</string>
+    <string name="st_paused">Paused</string>
+    <string name="st_paused_d">Signed out. Tap Connect to resume.</string>
+    <string name="st_wait_wifi">Waiting for campus Wi-Fi</string>
+    <string name="st_wait_wifi_none">No Wi-Fi connection with an IP address yet.</string>
+    <string name="st_wait_wifi_hidden">The Wi-Fi name is hidden by Android. Allow location access (see the checklist on the Connection tab), or turn on portal-only matching for a network.</string>
+    <string name="st_wait_wifi_unknown">\"%1$s\" is not in any configured network.</string>
+    <string name="st_auto_off">Automatic sign-in is off</string>
+    <string name="st_auto_off_d">Tap Connect to sign in to %1$s.</string>
+    <string name="st_signing_in">Signing in…</string>
+    <string name="st_review_cert">Review certificate</string>
+    <string name="st_cert_changed_d">The portal certificate changed. No password has been sent.</string>
+    <string name="st_cert_new_d">Approve the portal certificate once. No password has been sent.</string>
+    <string name="st_account_needed">Account needed</string>
+    <string name="st_account_needed_d">No usable account in %1$s: none added, all disabled, quota used up or password rejected.</string>
+    <string name="st_wait_retry">Waiting to retry</string>
+    <string name="st_connected">Connected</string>
+    <string name="st_connected_d">Signed in as \"%1$s\" on %2$s.</string>
+
+    <!-- Notification and tile -->
+    <string name="notif_channel_name">UniLink status</string>
+    <string name="notif_channel_desc">Shows the current university Wi-Fi sign-in status</string>
+    <string name="notif_exit">Exit</string>
+    <string name="tile_signing_in">Signing in…</string>
+    <string name="tile_review_cert">Review certificate</string>
+    <string name="tile_retrying">Retrying</string>
+    <string name="tile_paused">Paused</string>
+    <string name="tile_tap_connect">Tap to connect</string>
+    <string name="widget_desc">Shows the sign-in status and connects or pauses with one tap.</string>
+    <string name="widget_connect">Connect</string>
+    <string name="widget_pause">Pause</string>
+    <string name="set_theme_title">Appearance</string>
+    <string name="set_theme_system">System</string>
+    <string name="set_theme_light">Light</string>
+    <string name="set_theme_dark">Dark</string>
+    <string name="set_theme_midnight">Midnight</string>
+    <string name="about_author">Author</string>
+    <string name="about_github">GitHub project</string>
+    <string name="upd_check">Check for update</string>
+    <string name="upd_download">Download</string>
+    <string name="upd_checking">Checking GitHub…</string>
+    <string name="upd_up_to_date">You have the latest version (%1$s).</string>
+    <string name="upd_available">Version %1$s is available.</string>
+    <string name="upd_failed">Could not check: %1$s</string>
+    <string name="upd_privacy">Only runs when you tap the button. It asks GitHub for the latest release and sends no accounts or personal data. Nothing is installed automatically.</string>
+    <string name="conn_wifi_off_title">Wi-Fi is off</string>
+    <string name="conn_wifi_off_body">UniLink can only sign in over campus Wi-Fi. Android does not let apps switch Wi-Fi on by themselves, so tap the button and flip the Wi-Fi switch.</string>
+    <string name="conn_wifi_on">Turn on Wi-Fi</string>
+    <string name="usage_refresh">Refresh data usage</string>
+    <string name="usage_loading">Reading from the user portal…</string>
+    <string name="usage_never">Data usage not fetched yet. Tap Refresh.</string>
+    <string name="usage_left">%1$s left of %2$s</string>
+    <string name="usage_unlimited">Unlimited · %1$s used</string>
+    <string name="usage_renews">Renews %1$s</string>
+    <string name="usage_updated">Updated %1$s</string>
+    <string name="usage_error">Could not read usage: %1$s</string>
+    <string name="usage_just_now">just now</string>
+    <string name="usage_title">Data left · %1$s</string>
+    <string name="usage_refresh_short">Refresh</string>
+    <string name="notif_update_channel">Update available</string>
+    <string name="notif_update_title">UniLink %1$s is available</string>
+    <string name="notif_update_text">Tap to open the download page.</string>
+    <string name="set_update_title">Tell me about new versions</string>
+    <string name="set_update_sub">Once a day UniLink asks GitHub for the latest version and shows one quiet notice only if yours is older. Nothing is installed and no account data is sent.</string>
+    <string name="notif_problem_channel">Connection problems</string>
+    <string name="notif_noacc_title">No account can sign in</string>
+    <string name="notif_noacc_text">Every account on %1$s is out of data, disabled or has a wrong password. Tap to review them.</string>
+    <string name="widget_left">%1$s left</string>
+    <string name="set_prefer_title">Most data first</string>
+    <string name="set_prefer_sub">Sign in with the account that has the most data left (needs a recent Refresh data usage). Accounts under 200 MB are tried last. Off: use the list order.</string>
+    <string name="set_problems_title">Tell me when no account works</string>
+    <string name="set_problems_sub">One quiet notification when every account is out of data, disabled or rejected. It is shown once until a sign-in works again.</string>
+    <string name="tour_skip">Skip</string>
+    <string name="tour_back">Back</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_done">Done</string>
+    <string name="tour_progress">%1$d / %2$d</string>
+    <string name="tour1_title">Welcome to UniLink</string>
+    <string name="tour1_body">UniLink signs in to your university Wi-Fi and keeps you connected, even with the screen off or a VPN running. This short tour shows what to do. You can skip it at any time.</string>
+    <string name="tour2_title">Add your accounts</string>
+    <string name="tour2_body">Open the Accounts tab and tap + to add a student number and password. Add several and UniLink switches to the next one when an account runs out of data.</string>
+    <string name="tour3_title">Trust the portal once</string>
+    <string name="tour3_body">The first time, a certificate card appears on the Connection tab. Compare its fingerprint with the one your browser shows on the normal login page, then tap Trust. No password is sent before you do.</string>
+    <string name="tour4_title">Connect and pause</string>
+    <string name="tour4_body">The Connection tab shows your status and a bar with the data you have left. After that UniLink signs in by itself on campus Wi-Fi. Use Connect to sign in now, or Pause &amp; sign out to stop.</string>
+    <string name="tour5_title">See your remaining data</string>
+    <string name="tour5_body">Tap Refresh data usage on the Accounts tab to read each account\'s remaining data from the university portal. Settings has Most data first, which uses it to pick the best account.</string>
+    <string name="tour6_title">Let it run in the background</string>
+    <string name="tour6_body">Allow Location (Android needs it to read the Wi-Fi name), Notifications and Unrestricted battery. Settings has a step-by-step battery guide for your phone brand.</string>
+    <string name="set_tour_again">Show the tour again</string>
+    <string name="batt_guide_title">Battery guide for your phone</string>
+    <string name="batt_guide_intro">Some phones stop background apps to save battery, so UniLink misses keepalives and you go offline. Open your phone brand and follow the steps.</string>
+    <string name="batt_your_phone">your phone</string>
+    <string name="batt_open_settings">Open battery settings</string>
+    <string name="batt_guide_note">Menu names differ a little between Android versions. If you cannot find an entry, search for Battery in Settings.</string>
+    <string name="batt_samsung">1. Settings → Apps → UniLink → Battery → choose Unrestricted.\n2. Settings → Battery → Background usage limits: turn off Put unused apps to sleep, and make sure UniLink is not in the Sleeping apps or Deep sleeping apps lists (add it to Never sleeping apps).\n3. Open Recent apps, tap the UniLink icon at the top and choose Keep open.</string>
+    <string name="batt_xiaomi">1. Settings → Apps → Manage apps → UniLink → Battery saver → No restrictions.\n2. On the same page turn on Autostart.\n3. Open Recent apps, press and hold the UniLink card and tap the lock icon so it is not cleared.\n4. Settings → Battery: turn off any battery saver that limits background apps.</string>
+    <string name="batt_huawei">1. Settings → Battery → App launch → UniLink: turn off Manage automatically.\n2. Turn on Auto-launch, Secondary launch and Run in background.\n3. Settings → Apps → UniLink → Battery: allow it to run in the background (Unrestricted).</string>
+    <string name="batt_oppo">1. Settings → Battery → UniLink (or More battery settings → App battery management) → Allow background activity.\n2. Settings → Apps → App management → UniLink: turn on Auto launch (Allow auto-start).\n3. Open Recent apps and lock the UniLink card.</string>
+    <string name="batt_vivo">1. Settings → Battery → Background power consumption management → UniLink → Allow high background power consumption.\n2. Settings → Apps → Autostart: turn UniLink on.\n3. Lock UniLink in Recent apps.</string>
+    <string name="batt_other">1. Settings → Apps → UniLink → App battery usage (or Battery) → Unrestricted.\n2. If your phone has Adaptive Battery or a battery optimisation list, make sure UniLink is not optimised.\n3. Turn off Battery saver while you rely on UniLink, or add UniLink as an exception.</string>
+    <string name="acc_use">Use this account</string>
+    <string name="acc_fix_password">Fix password</string>
+    <string name="conn_badpw_title">Password rejected</string>
+    <string name="conn_badpw_body">The portal rejected the password of %1$s, so UniLink skips it. Edit the account to use it again.</string>
+    <string name="conn_badpw_open">Open Accounts</string>
+    <string name="st_use_failed_title">Cannot use \"%1$s\"</string>
+    <string name="st_use_rejected">The portal rejected its password. Edit the account on the Accounts tab, or pick another one.</string>
+    <string name="st_use_quota">Its data allowance is used up this month. Pick another account.</string>
+    <string name="st_use_disabled">The account is switched off. Turn it on in the Accounts tab.</string>
+    <string name="set_switch_title">Switch right after choosing an account</string>
+    <string name="set_switch_sub">Tapping Use this account signs out of the current one, signs in with it and opens the Connection tab. When off, it only makes it the default.</string>
+</resources>

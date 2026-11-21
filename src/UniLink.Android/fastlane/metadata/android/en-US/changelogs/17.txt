@@ -1,0 +1,1 @@
+Sign-in log lines now show how long the sign-in took and how long after Wi-Fi was detected, to help find slow connections. Connection timeout to the portal is 6 s instead of 10 s.

@@ -1,0 +1,1 @@
+Fix: the battery guide button now opens the app settings when battery use is already unrestricted.

@@ -1,0 +1,1 @@
+Connect now opens the system Wi-Fi switch when Wi-Fi is off, and the Connection tab shows a Turn on Wi-Fi card.

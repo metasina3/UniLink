@@ -1,0 +1,1 @@
+Battery: the CPU and Wi-Fi locks are now held only while signed in to campus Wi-Fi, not all day. Away from campus the app no longer keeps the phone awake.

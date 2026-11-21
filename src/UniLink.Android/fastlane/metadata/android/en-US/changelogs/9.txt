@@ -1,0 +1,1 @@
+New diagnostics for battery tuning: a network-events counter on the Connection tab. The activity log notes which fields the portal replies with.

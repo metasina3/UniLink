@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tabs -->
+    <string name="tab_connection">اتصال</string>
+    <string name="tab_accounts">حساب‌ها</string>
+    <string name="tab_networks">شبکه‌ها</string>
+    <string name="tab_activity">گزارش</string>
+    <string name="tab_settings">تنظیمات</string>
+
+    <!-- Common -->
+    <string name="common_save">ذخیره</string>
+    <string name="common_cancel">انصراف</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_allow">اجازه</string>
+
+    <!-- Connection -->
+    <string name="conn_network">شبکه</string>
+    <string name="conn_account">حساب</string>
+    <string name="conn_last_keepalive">آخرین نگه‌داشت نشست</string>
+    <string name="conn_next_check">بررسی بعدی</string>
+    <string name="conn_connect">اتصال</string>
+    <string name="conn_pause">توقف و خروج</string>
+    <string name="conn_keepalives">نگه‌داشت نشست</string>
+    <string name="conn_keepalives_value">%1$d موفق · %2$d ناموفق</string>
+    <string name="conn_net_events">رویدادهای شبکه</string>
+    <string name="conn_late">بیدار شدن دیرهنگام</string>
+    <string name="conn_late_value">%1$d بار (بیشینه %2$d ثانیه)</string>
+
+    <!-- Certificate card -->
+    <string name="cert_changed_title">گواهی پرتال تغییر کرده است</string>
+    <string name="cert_review_title">بررسی گواهی پرتال</string>
+    <string name="cert_body">پیش از اعتماد، این اثر انگشت را با گواهی‌ای که مرورگر در صفحهٔ معمول ورود دانشگاه نشان می‌دهد مقایسه کن (یا از بخش فناوری اطلاعات بپرس). تا تأیید نکنی هیچ رمزی ارسال نمی‌شود.</string>
+    <string name="cert_network">شبکه</string>
+    <string name="cert_sha256">SHA-256</string>
+    <string name="cert_trust">به این گواهی اعتماد می‌کنم</string>
+
+    <!-- Setup checklist -->
+    <string name="setup_title">آماده‌سازی (%1$d از %2$d)</string>
+    <string name="setup_account_title">افزودن حساب</string>
+    <string name="setup_account_hint">شمارهٔ دانشجویی و رمز را در تب حساب‌ها وارد کن.</string>
+    <string name="setup_open_accounts">باز کردن حساب‌ها</string>
+    <string name="setup_location_title">اجازهٔ موقعیت مکانی</string>
+    <string name="setup_location_hint">اندروید نام وای‌فای را فقط به برنامه‌هایی می‌دهد که این اجازه را دارند. موقعیت هرگز ذخیره یا ارسال نمی‌شود.</string>
+    <string name="setup_notif_title">اجازهٔ اعلان‌ها</string>
+    <string name="setup_notif_hint">وضعیت اتصال را در پردهٔ اعلان‌ها نشان می‌دهد.</string>
+    <string name="setup_battery_title">باتری بدون محدودیت</string>
+    <string name="setup_battery_hint">نمی‌گذارد اندروید هنگام خاموش بودن صفحه، UniLink را متوقف کند.</string>
+    <string name="setup_cert_title">اعتماد به گواهی پرتال</string>
+    <string name="setup_cert_hint">اولین باری که به وای‌فای دانشگاه وصل شوی همین‌جا ظاهر می‌شود. تا تأیید نکنی چیزی ارسال نمی‌شود.</string>
+
+    <!-- Accounts -->
+    <string name="acc_no_groups">هنوز گروه شبکه‌ای نیست. اول در تب شبکه‌ها یکی اضافه کن.</string>
+    <string name="acc_none">در «%1$s» حسابی نیست. برای افزودن، + را بزن.</string>
+    <string name="acc_add_cd">افزودن حساب</string>
+    <string name="acc_more_cd">بیشتر</string>
+    <string name="tag_default">پیش‌فرض</string>
+    <string name="tag_in_use">در حال استفاده</string>
+    <string name="tag_disabled">غیرفعال</string>
+    <string name="tag_password_rejected">رمز پذیرفته نشد</string>
+    <string name="tag_quota_used">حجم این ماه تمام شده</string>
+    <string name="menu_edit">ویرایش</string>
+    <string name="menu_set_default">پیش‌فرض کردن</string>
+    <string name="menu_move_up">انتقال به بالا</string>
+    <string name="menu_move_down">انتقال به پایین</string>
+    <string name="menu_disable">غیرفعال کردن</string>
+    <string name="menu_enable">فعال کردن</string>
+    <string name="menu_clear_block">رفع انسداد حساب</string>
+    <string name="acc_dialog_add">افزودن حساب</string>
+    <string name="acc_dialog_edit">ویرایش حساب</string>
+    <string name="acc_field_name">نام (اختیاری)</string>
+    <string name="acc_field_user">شمارهٔ دانشجویی</string>
+    <string name="acc_field_pass">رمز عبور</string>
+    <string name="acc_show">نمایش</string>
+    <string name="acc_hide">پنهان</string>
+    <string name="acc_delete_title">حساب حذف شود؟</string>
+    <string name="acc_delete_text">«%1$s» از %2$s حذف می‌شود.</string>
+
+    <!-- Networks -->
+    <string name="net_wifi_names">نام وای‌فای</string>
+    <string name="net_accounts">حساب‌ها</string>
+    <string name="net_keepalive">نگه‌داشت نشست</string>
+    <string name="net_seconds">%1$d ثانیه</string>
+    <string name="net_timezone">منطقهٔ زمانی</string>
+    <string name="net_pinned">گواهی پین شده</string>
+    <string name="net_not_pinned">پین نشده</string>
+    <string name="net_portal_only_note">با پرتال در دسترس و پین‌شده هم شناسایی می‌شود</string>
+    <string name="net_forget_certs">فراموش کردن گواهی‌ها</string>
+    <string name="net_add_cd">افزودن گروه شبکه</string>
+    <string name="net_dialog_add">افزودن گروه شبکه</string>
+    <string name="net_dialog_edit">ویرایش گروه شبکه</string>
+    <string name="net_field_name">نام</string>
+    <string name="net_field_ssids">نام وای‌فای (هر خط یکی، دقیقاً مطابق)</string>
+    <string name="net_field_urls">آدرس پرتال (https، هر خط یکی)</string>
+    <string name="net_portal_only_check">با پرتال در دسترس و پین‌شده هم شناسایی شود (وقتی نام وای‌فای معلوم نیست)</string>
+    <string name="net_field_keepalive">ثانیه‌های نگه‌داشت نشست (۳۰ تا ۱۸۰)</string>
+    <string name="net_field_tz">منطقهٔ زمانی (برای بازنشانی ماهانه)</string>
+    <string name="net_field_phrases">عبارت‌های اضافهٔ اتمام حجم (هر خط یکی)</string>
+    <string name="net_phrases_support">اختیاری. پیام استاندارد دانشگاه از قبل داخل برنامه هست.</string>
+    <string name="err_name">برای شبکه یک نام بگذار.</string>
+    <string name="err_url_empty">دست‌کم یک آدرس پرتال اضافه کن.</string>
+    <string name="err_url_https">آدرس پرتال باید یک آدرس معتبر https:// باشد.</string>
+    <string name="err_keepalive">بازهٔ نگه‌داشت نشست باید بین ۳۰ تا ۱۸۰ ثانیه باشد.</string>
+    <string name="err_tz">منطقهٔ زمانی ناشناخته است. مثال: Asia/Tehran</string>
+    <string name="err_ssid">یک نام وای‌فای اضافه کن، یا شناسایی با پرتال را روشن کن.</string>
+    <string name="net_delete_title">گروه شبکه حذف شود؟</string>
+    <string name="net_delete_text">«%1$s» و %2$d حساب آن از این گوشی حذف می‌شود.</string>
+
+    <!-- Activity -->
+    <string name="act_share_log">اشتراک‌گذاری گزارش</string>
+    <string name="act_clear">پاک کردن</string>
+    <string name="act_note">رمز و شمارهٔ دانشجویی هرگز در این گزارش نوشته نمی‌شود و فقط در حافظه می‌ماند. خطوط گزارش همیشه انگلیسی‌اند تا اشتراک‌گذاری و عیب‌یابی ساده باشد.</string>
+    <string name="act_empty">هنوز چیزی ثبت نشده.</string>
+    <string name="act_share_subject">گزارش عیب‌یابی UniLink</string>
+    <string name="act_share_chooser">اشتراک‌گذاری گزارش</string>
+
+    <!-- Settings -->
+    <string name="set_auto_title">ورود خودکار</string>
+    <string name="set_auto_sub">به‌محض شناسایی وای‌فای تنظیم‌شده، وارد می‌شود.</string>
+    <string name="set_boot_title">شروع با روشن شدن گوشی</string>
+    <string name="set_boot_sub">بعد از ری‌استارت، سرویس پس‌زمینه را اجرا می‌کند.</string>
+    <string name="set_wake_title">بیدار نگه داشتن پردازنده</string>
+    <string name="set_wake_sub">با صفحهٔ خاموش هم پردازنده را روشن نگه می‌دارد تا نگه‌داشت نشست سر وقت انجام شود. مطمئن‌ترین حالت است ولی باتری بیشتری مصرف می‌کند. فقط وقتی به وای‌فای دانشگاه وصل هستی نگه داشته می‌شود.</string>
+    <string name="set_wifi_title">وای‌فای با توان کامل</string>
+    <string name="set_wifi_sub">نمی‌گذارد با صفحهٔ خاموش، وای‌فای در حالت صرفه‌جویی برود. اگر مصرف باتری زیاد است اول این را خاموش کن و بعد در تب اتصال، تعداد نگه‌داشت‌های ناموفق یا دیرهنگام را ببین. فقط وقتی به وای‌فای دانشگاه وصل هستی نگه داشته می‌شود.</string>
+    <string name="set_perm_title">اجازه‌ها</string>
+    <string name="set_loc_title">موقعیت مکانی (برای خواندن نام وای‌فای)</string>
+    <string name="set_loc_sub">برای شناسایی UUWN لازم است.</string>
+    <string name="set_notif_title">اعلان‌ها</string>
+    <string name="set_notif_sub">وضعیت را در پردهٔ اعلان‌ها نشان می‌دهد.</string>
+    <string name="set_batt_title">باتری بدون محدودیت</string>
+    <string name="set_batt_sub">نمی‌گذارد اندروید برنامه را در پس‌زمینه متوقف کند.</string>
+    <string name="set_ok">تأیید شد</string>
+    <string name="set_lang_title">زبان</string>
+    <string name="set_lang_system">سیستم</string>
+    <string name="set_lang_en">English</string>
+    <string name="set_lang_fa">فارسی</string>
+    <string name="set_about_title">دربارهٔ برنامه</string>
+    <string name="set_about_text">UniLink برای اندروید، نسخهٔ %1$s. حساب‌ها و تنظیمات با کلیدی در Android Keystore رمزگذاری می‌شوند و از این گوشی بیرون نمی‌روند. فقط حساب‌هایی را اضافه کن که اجازهٔ استفاده‌شان را داری.</string>
+    <string name="set_exit">خروج از UniLink</string>
+
+    <!-- Engine status -->
+    <string name="st_stopped">متوقف</string>
+    <string name="st_paused">متوقف‌شده</string>
+    <string name="st_paused_d">از حساب خارج شدی. برای ادامه، اتصال را بزن.</string>
+    <string name="st_wait_wifi">در انتظار وای‌فای دانشگاه</string>
+    <string name="st_wait_wifi_none">هنوز به وای‌فایی با آدرس IP وصل نیستی.</string>
+    <string name="st_wait_wifi_hidden">اندروید نام وای‌فای را پنهان کرده است. اجازهٔ موقعیت مکانی را بده (چک‌لیست تب اتصال)، یا برای یک شبکه شناسایی با پرتال را روشن کن.</string>
+    <string name="st_wait_wifi_unknown">«%1$s» در هیچ‌یک از شبکه‌های تنظیم‌شده نیست.</string>
+    <string name="st_auto_off">ورود خودکار خاموش است</string>
+    <string name="st_auto_off_d">برای ورود به %1$s، اتصال را بزن.</string>
+    <string name="st_signing_in">در حال ورود…</string>
+    <string name="st_review_cert">بررسی گواهی</string>
+    <string name="st_cert_changed_d">گواهی پرتال تغییر کرده است. هیچ رمزی ارسال نشده.</string>
+    <string name="st_cert_new_d">گواهی پرتال را یک‌بار تأیید کن. هیچ رمزی ارسال نشده.</string>
+    <string name="st_account_needed">حساب لازم است</string>
+    <string name="st_account_needed_d">در %1$s حساب قابل‌استفاده‌ای نیست: یا اضافه نشده، یا همه غیرفعال‌اند، حجمشان تمام شده یا رمزشان پذیرفته نشده.</string>
+    <string name="st_wait_retry">در انتظار تلاش دوباره</string>
+    <string name="st_connected">متصل</string>
+    <string name="st_connected_d">با «%1$s» در %2$s وارد شده‌ای.</string>
+
+    <!-- Notification and tile -->
+    <string name="notif_channel_name">وضعیت UniLink</string>
+    <string name="notif_channel_desc">وضعیت فعلی ورود به وای‌فای دانشگاه را نشان می‌دهد</string>
+    <string name="notif_exit">خروج</string>
+    <string name="tile_signing_in">در حال ورود…</string>
+    <string name="tile_review_cert">بررسی گواهی</string>
+    <string name="tile_retrying">تلاش دوباره</string>
+    <string name="tile_paused">متوقف‌شده</string>
+    <string name="tile_tap_connect">برای اتصال بزن</string>
+    <string name="widget_desc">وضعیت ورود را نشان می‌دهد و با یک ضربه وصل یا متوقف می‌کند.</string>
+    <string name="widget_connect">اتصال</string>
+    <string name="widget_pause">توقف</string>
+    <string name="set_theme_title">ظاهر</string>
+    <string name="set_theme_system">سیستم</string>
+    <string name="set_theme_light">روشن</string>
+    <string name="set_theme_dark">تیره</string>
+    <string name="set_theme_midnight">نیمه‌شب</string>
+    <string name="about_author">سازنده</string>
+    <string name="about_github">پروژه در GitHub</string>
+    <string name="upd_check">بررسی به‌روزرسانی</string>
+    <string name="upd_download">دانلود</string>
+    <string name="upd_checking">در حال بررسی GitHub…</string>
+    <string name="upd_up_to_date">آخرین نسخه را داری (%1$s).</string>
+    <string name="upd_available">نسخهٔ %1$s در دسترس است.</string>
+    <string name="upd_failed">بررسی انجام نشد: %1$s</string>
+    <string name="upd_privacy">فقط وقتی دکمه را بزنی اجرا می‌شود. از GitHub آخرین نسخه را می‌پرسد و هیچ حساب یا اطلاعات شخصی نمی‌فرستد. چیزی خودکار نصب نمی‌شود.</string>
+    <string name="conn_wifi_off_title">وای‌فای خاموش است</string>
+    <string name="conn_wifi_off_body">UniLink فقط از طریق وای‌فای دانشگاه وارد می‌شود. اندروید اجازه نمی‌دهد برنامه‌ها وای‌فای را خودشان روشن کنند؛ دکمه را بزن و کلید وای‌فای را روشن کن.</string>
+    <string name="conn_wifi_on">روشن کردن وای‌فای</string>
+    <string name="usage_refresh">به‌روزرسانی حجم</string>
+    <string name="usage_loading">در حال خواندن از پرتال کاربر…</string>
+    <string name="usage_never">حجم هنوز دریافت نشده. دکمه‌ی به‌روزرسانی را بزنید.</string>
+    <string name="usage_left">%1$s باقی‌مانده از %2$s</string>
+    <string name="usage_unlimited">نامحدود · %1$s مصرف‌شده</string>
+    <string name="usage_renews">تمدید: %1$s</string>
+    <string name="usage_updated">به‌روز شده: %1$s</string>
+    <string name="usage_error">خواندن حجم ناموفق بود: %1$s</string>
+    <string name="usage_just_now">همین الان</string>
+    <string name="usage_title">حجم باقی‌مانده · %1$s</string>
+    <string name="usage_refresh_short">به‌روزرسانی</string>
+    <string name="notif_update_channel">نسخه‌ی جدید</string>
+    <string name="notif_update_title">نسخه‌ی %1$s یونی‌لینک آماده است</string>
+    <string name="notif_update_text">برای باز شدن صفحه‌ی دانلود لمس کنید.</string>
+    <string name="set_update_title">اطلاع از نسخه‌ی جدید</string>
+    <string name="set_update_sub">روزی یک بار آخرین نسخه از گیت‌هاب پرسیده می‌شود و فقط اگر نسخه‌ی شما قدیمی‌تر باشد یک اعلان آرام نشان داده می‌شود. چیزی نصب نمی‌شود و اطلاعات حساب فرستاده نمی‌شود.</string>
+    <string name="notif_problem_channel">مشکلات اتصال</string>
+    <string name="notif_noacc_title">هیچ حسابی نمی‌تواند وارد شود</string>
+    <string name="notif_noacc_text">همه‌ی حساب‌های «%1$s» حجم ندارند، غیرفعال‌اند یا رمزشان اشتباه است. برای بررسی لمس کنید.</string>
+    <string name="widget_left">%1$s باقی‌مانده</string>
+    <string name="set_prefer_title">اول بیشترین حجم</string>
+    <string name="set_prefer_sub">ورود با حسابی که حجم بیشتری دارد (نیاز به «به‌روزرسانی حجم» اخیر). حساب‌های زیر ۲۰۰ مگابایت آخر امتحان می‌شوند. خاموش: ترتیب فهرست.</string>
+    <string name="set_problems_title">اطلاع وقتی هیچ حسابی کار نمی‌کند</string>
+    <string name="set_problems_sub">یک اعلان آرام وقتی همه‌ی حساب‌ها حجم ندارند، غیرفعال‌اند یا رد شده‌اند. تا زمانی که ورود دوباره موفق شود فقط یک بار نشان داده می‌شود.</string>
+    <string name="tour_skip">رد کردن</string>
+    <string name="tour_back">قبلی</string>
+    <string name="tour_next">بعدی</string>
+    <string name="tour_done">تمام</string>
+    <string name="tour_progress">%1$d / %2$d</string>
+    <string name="tour1_title">به یونی‌لینک خوش آمدید</string>
+    <string name="tour1_body">یونی‌لینک خودش وارد وای‌فای دانشگاه می‌شود و حتی با صفحه‌ی خاموش یا VPN روشن شما را متصل نگه می‌دارد. این تور کوتاه می‌گوید چه کار کنید. هر زمان خواستید می‌توانید رد کنید.</string>
+    <string name="tour2_title">حساب‌هایتان را اضافه کنید</string>
+    <string name="tour2_body">تب «حساب‌ها» را باز کنید و با + شماره‌ی دانشجویی و رمز را اضافه کنید. اگر چند حساب بگذارید، وقتی حجم یکی تمام شود یونی‌لینک سراغ بعدی می‌رود.</string>
+    <string name="tour3_title">یک بار به پرتال اعتماد کنید</string>
+    <string name="tour3_body">بار اول در تب «اتصال» یک کارت گواهی می‌آید. اثر انگشت آن را با چیزی که مرورگرتان در صفحه‌ی ورود معمولی نشان می‌دهد مقایسه کنید و «اعتماد» را بزنید. تا آن موقع هیچ رمزی فرستاده نمی‌شود.</string>
+    <string name="tour4_title">اتصال و توقف</string>
+    <string name="tour4_body">تب «اتصال» وضعیت و نوار حجم باقی‌مانده را نشان می‌دهد. از آن به بعد یونی‌لینک در وای‌فای دانشگاه خودش وارد می‌شود. با «اتصال» همین حالا وارد شوید و با «توقف و خروج» متوقفش کنید.</string>
+    <string name="tour5_title">حجم باقی‌مانده را ببینید</string>
+    <string name="tour5_body">در تب «حساب‌ها» روی «به‌روزرسانی حجم» بزنید تا حجم باقی‌مانده‌ی هر حساب از پرتال دانشگاه خوانده شود. در تنظیمات گزینه‌ی «اول بیشترین حجم» از آن برای انتخاب بهترین حساب استفاده می‌کند.</string>
+    <string name="tour6_title">بگذارید در پس‌زمینه کار کند</string>
+    <string name="tour6_body">اجازه‌ی موقعیت (اندروید برای خواندن نام وای‌فای لازم دارد)، اعلان‌ها و «باتری بدون محدودیت» را بدهید. در تنظیمات یک راهنمای قدم‌به‌قدم باتری برای برند گوشی‌تان هست.</string>
+    <string name="set_tour_again">نمایش دوباره‌ی تور راهنما</string>
+    <string name="batt_guide_title">راهنمای باتری برای گوشی شما</string>
+    <string name="batt_guide_intro">بعضی گوشی‌ها برای صرفه‌جویی در باتری برنامه‌های پس‌زمینه را می‌بندند و یونی‌لینک keepalive را از دست می‌دهد و شما قطع می‌شوید. برند گوشی‌تان را باز کنید و مراحل را انجام دهید.</string>
+    <string name="batt_your_phone">گوشی شما</string>
+    <string name="batt_open_settings">باز کردن تنظیمات باتری</string>
+    <string name="batt_guide_note">نام منوها بین نسخه‌های اندروید کمی فرق می‌کند. اگر گزینه‌ای را پیدا نکردید، در تنظیمات دنبال «باتری» بگردید.</string>
+    <string name="batt_samsung">۱. تنظیمات ← برنامه‌ها ← UniLink ← باتری ← «بدون محدودیت» (Unrestricted).\n۲. تنظیمات ← باتری ← محدودیت‌های استفاده در پس‌زمینه: گزینه‌ی «خواباندن برنامه‌های استفاده‌نشده» را خاموش کنید و مطمئن شوید UniLink در فهرست برنامه‌های خواب یا خواب عمیق نیست (آن را به «برنامه‌هایی که هرگز نمی‌خوابند» اضافه کنید).\n۳. برنامه‌های اخیر را باز کنید، روی آیکن UniLink بالای کارت بزنید و «باز نگه داشتن» را انتخاب کنید.</string>
+    <string name="batt_xiaomi">۱. تنظیمات ← برنامه‌ها ← مدیریت برنامه‌ها ← UniLink ← صرفه‌جویی باتری ← بدون محدودیت (No restrictions).\n۲. در همان صفحه «شروع خودکار» (Autostart) را روشن کنید.\n۳. برنامه‌های اخیر را باز کنید، روی کارت UniLink نگه دارید و آیکن قفل را بزنید تا پاک نشود.\n۴. تنظیمات ← باتری: هر صرفه‌جویی باتری که برنامه‌های پس‌زمینه را محدود می‌کند خاموش کنید.</string>
+    <string name="batt_huawei">۱. تنظیمات ← باتری ← راه‌اندازی برنامه (App launch) ← UniLink: گزینه‌ی «مدیریت خودکار» را خاموش کنید.\n۲. «راه‌اندازی خودکار»، «راه‌اندازی ثانویه» و «اجرا در پس‌زمینه» را روشن کنید.\n۳. تنظیمات ← برنامه‌ها ← UniLink ← باتری: اجازه‌ی اجرا در پس‌زمینه (بدون محدودیت).</string>
+    <string name="batt_oppo">۱. تنظیمات ← باتری ← UniLink (یا تنظیمات بیشتر باتری ← مدیریت باتری برنامه‌ها) ← اجازه‌ی فعالیت در پس‌زمینه.\n۲. تنظیمات ← برنامه‌ها ← مدیریت برنامه‌ها ← UniLink: «راه‌اندازی خودکار» (Auto launch) را روشن کنید.\n۳. برنامه‌های اخیر را باز کنید و کارت UniLink را قفل کنید.</string>
+    <string name="batt_vivo">۱. تنظیمات ← باتری ← مدیریت مصرف انرژی در پس‌زمینه ← UniLink ← اجازه‌ی مصرف بالای انرژی در پس‌زمینه.\n۲. تنظیمات ← برنامه‌ها ← شروع خودکار (Autostart): UniLink را روشن کنید.\n۳. UniLink را در برنامه‌های اخیر قفل کنید.</string>
+    <string name="batt_other">۱. تنظیمات ← برنامه‌ها ← UniLink ← مصرف باتری برنامه (یا باتری) ← بدون محدودیت (Unrestricted).\n۲. اگر گوشی‌تان باتری تطبیقی (Adaptive Battery) یا فهرست بهینه‌سازی باتری دارد، مطمئن شوید UniLink بهینه‌سازی نشده است.\n۳. تا وقتی به یونی‌لینک نیاز دارید صرفه‌جویی باتری را خاموش کنید یا UniLink را به استثناها اضافه کنید.</string>
+    <string name="acc_use">استفاده از این حساب</string>
+    <string name="acc_fix_password">اصلاح رمز</string>
+    <string name="conn_badpw_title">رمز رد شد</string>
+    <string name="conn_badpw_body">پرتال رمز %1$s را رد کرد و یونی‌لینک آن را کنار گذاشته. حساب را ویرایش کن تا دوباره استفاده شود.</string>
+    <string name="conn_badpw_open">باز کردن حساب‌ها</string>
+    <string name="st_use_failed_title">نمی‌شود از «%1$s» استفاده کرد</string>
+    <string name="st_use_rejected">پرتال رمز آن را رد کرد. حساب را در تب حساب‌ها ویرایش کن یا حساب دیگری را بردار.</string>
+    <string name="st_use_quota">حجم این ماه آن تمام شده. حساب دیگری را بردار.</string>
+    <string name="st_use_disabled">حساب خاموش است. در تب حساب‌ها روشنش کن.</string>
+    <string name="set_switch_title">بعد از انتخاب حساب بلافاصله سوئیچ کن</string>
+    <string name="set_switch_sub">با «استفاده از این حساب» از حساب فعلی خارج می‌شود، با این حساب وارد می‌شود و تب اتصال باز می‌شود. اگر خاموش باشد فقط آن را پیش‌فرض می‌کند.</string>
+</resources>
