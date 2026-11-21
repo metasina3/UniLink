@@ -1,3 +1,7 @@
+# Windows 1.3.1
+
+- Publish a standalone `UniLink.exe` with the .NET runtime and license notices embedded.
+
 # 1.2.1
 
 - Verify hardware Wi-Fi/Ethernet flags, exclude virtual Ethernet/filter/tunnel adapters and recheck GUID/index before new connections.

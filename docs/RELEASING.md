@@ -4,11 +4,17 @@ Each platform uses its own version and tag prefix. Existing desktop releases ret
 
 | Platform | Tag | Version in source | Publish |
 | --- | --- | --- | --- |
-| Windows | `windows-vX.Y.Z` | `Directory.Build.props` → `Version` | Publish a GitHub Release on the tag. The Windows workflow attaches the ZIP, source, and SHA-256 list. |
+| Windows | `windows-vX.Y.Z` | `Directory.Build.props` → `Version` | Publish a GitHub Release on the tag. The Windows workflow attaches the tested standalone `UniLink.exe`. |
 | macOS | `macos-vX.Y.Z` | `src/UniLink.macOS/build-swift.sh` → `CFBundleShortVersionString` | Publish a GitHub Release on the tag. The macOS workflow attaches the DMG, ZIP, and SHA-256 files. |
 | Android | `android-vX.Y.Z` | `src/UniLink.Android/app/build.gradle.kts` → `versionName` and `versionCode` | Push the tag. The Android workflow builds, signs, and publishes the APK and its SHA-256 file. |
 
-Create each tag from the commit containing that platform's matching version. For Android, increment `versionCode` with each release. Update the platform's download links in the [root README](../README.md) once the release assets are available.
+Create each platform tag from the commit containing its matching version. For Android, increment `versionCode` with each release.
+
+## Combined releases
+
+Use a `bundle-YYYY.MM.DD` tag to put the Windows executable, macOS DMG and ZIP, and Android APK on one release page. List each platform's version, source, and SHA-256 digest in the release notes. Keep the original signatures when copying existing assets.
+
+Update the download links in the [English README](../README.md) and [Persian README](../README_FA.md) for the new bundle.
 
 ## Android signing
 

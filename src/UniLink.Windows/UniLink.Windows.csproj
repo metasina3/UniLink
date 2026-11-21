@@ -14,5 +14,9 @@
     <Product>UniLink</Product>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="../UniLink.Core/UniLink.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../UniLink.Core/UniLink.Core.csproj" />
+    <EmbeddedResource Include="../../LICENSE" LogicalName="UniLink.Notices.LICENSE" />
+    <EmbeddedResource Include="../../notices/*.txt" LogicalName="UniLink.Notices.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>
