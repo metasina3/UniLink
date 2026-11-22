@@ -1,9 +1,9 @@
 namespace UniLink.Core;
 
 public enum ConnectionState { Waiting, Paused, Connecting, Online, Retry, NoAccounts, Certificate, Attention }
-public sealed record EngineStatus(ConnectionState State, string Detail, string Ssid = "", string Group = "", string Account = "", string Portal = "", DateTimeOffset? NextAction = null, DateTimeOffset? LastHeartbeat = null);
+public sealed record EngineStatus(ConnectionState State, string Detail, string Ssid = "", string Group = "", string Account = "", string Portal = "", DateTimeOffset? NextAction = null, DateTimeOffset? LastHeartbeat = null, string? GroupId = null, string? AccountId = null);
 
-public sealed class ConnectionEngine : IDisposable
+public sealed partial class ConnectionEngine : IDisposable
 {
     private AppConfig _config;
     private readonly IConfigStore _store;
@@ -285,7 +285,7 @@ public sealed class ConnectionEngine : IDisposable
         var a = _active!;
         Status = new(ConnectionState.Online, a.LiveOff ? "Signed in. Server disabled keepalive; monitoring network changes." : "Signed in. UniLink is keeping the session alive.",
             a.Link.Ssid ?? "SSID unavailable", group.Name, account.Label,
-            group.Portals.First(p => p.Id == a.PortalId).Url, a.LiveOff ? null : a.NextHeartbeat, a.LastHeartbeat);
+            group.Portals.First(p => p.Id == a.PortalId).Url, a.LiveOff ? null : a.NextHeartbeat, a.LastHeartbeat, a.GroupId, a.AccountId);
     }
     private async Task DropSessionAsync(bool logout, CancellationToken ct)
     {
@@ -320,11 +320,17 @@ public sealed class ConnectionEngine : IDisposable
                 var old = _config.Groups.FirstOrDefault(g => g.Id == group.Id);
                 if (old is null) continue;
                 group.LastMonth = old.LastMonth;
+                if (group.UsagePortalUrl != old.UsagePortalUrl) group.UsageCertificateSha256 = "";
+                var sameUsageServer = group.UsagePortalUrl == old.UsagePortalUrl && group.UsageCertificateSha256 == old.UsageCertificateSha256;
                 foreach (var account in group.Accounts)
                 {
                     var previous = old.Accounts.FirstOrDefault(a => a.Id == account.Id);
+                    account.LastUsage = null;
                     if (previous is not null && account.Username == previous.Username && account.Password == previous.Password)
-                    { account.ExhaustedMonth = previous.ExhaustedMonth; account.QuotaNextProbeAt = previous.QuotaNextProbeAt; account.NeedsAttention = previous.NeedsAttention; }
+                    {
+                        account.ExhaustedMonth = previous.ExhaustedMonth; account.QuotaNextProbeAt = previous.QuotaNextProbeAt; account.NeedsAttention = previous.NeedsAttention;
+                        if (sameUsageServer) account.LastUsage = previous.LastUsage;
+                    }
                     else { account.ExhaustedMonth = ""; account.QuotaNextProbeAt = null; account.NeedsAttention = false; }
                 }
             }

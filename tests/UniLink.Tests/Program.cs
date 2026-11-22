@@ -21,6 +21,8 @@ internal static class Program
     private static NetworkSnapshot Net(NetworkLink? link = null) => new([link ?? Campus]);
     private static string LoginXml(string status, string message = "") => $"<?xml version='1.0'?><requestresponse><status><![CDATA[{status}]]></status><message><![CDATA[{message}]]></message><state><![CDATA[]]></state></requestresponse>";
     private static string LiveXml(string ack, string message = "") => $"<?xml version='1.0'?><liverequestresponse><ack><![CDATA[{ack}]]></ack><livemessage><![CDATA[{message}]]></livemessage></liverequestresponse>";
+    private static string UsageRow(string label, string total, string used, string left) =>
+        $"<tr><td><label id = 'Language.{label}'></label></td><td>{total}</td><td></td><td></td><td>{used}</td><td>{left}</td></tr>";
     private static void Check(bool condition, string message = "Assertion failed") { if (!condition) throw new Exception(message); }
     private static void Equal<TV>(TV expected, TV actual) { if (!EqualityComparer<TV>.Default.Equals(expected, actual)) throw new Exception($"Expected {expected}, got {actual}."); }
     private static async Task Throws<TException>(Func<Task> action) where TException : Exception
@@ -425,6 +427,135 @@ internal static class Program
             server.Page = new string('x', 270000); await Throws<PortalTransportException>(() => client.ProbeAsync(default));
             Check(server.Requests.All(r => r.Method == "GET"));
         });
+        await Test("usage selects a finite monthly allowance over unlimited and lifetime rows", () =>
+        {
+            var html = "<table><tr><td><table>"
+                + UsageRow("DataTrasfer", "100 GB", "8 GB", "92 GB")
+                + UsageRow("CycleDataTrasfer", "<label id='Language.NAWithDot'></label>", "10 GB", "N.A.")
+                + UsageRow("CycleDownloadedData", "12&nbsp;GB", "8,960 <label id='Language.MB'></label>", "3.25 GB")
+                + "</table></td></tr></table>";
+            Equal(new AccountUsage(12_288, 8_960, 3_328, T), UsagePage.TryRead(html, T));
+            return Task.CompletedTask;
+        });
+        await Test("usage distinguishes unlimited allowance, exhaustion and an invalid page", () =>
+        {
+            Equal(new AccountUsage(null, 512, null, T), UsagePage.TryRead(UsageRow("CycleDataTrasfer", "N.A.", "512 MB", "N/A"), T));
+            Equal(new AccountUsage(1024, 1300, 0, T), UsagePage.TryRead(UsageRow("CycleDataTrasfer", "1 GB", "1300 MB", "-276 MB"), T));
+            Equal(new AccountUsage(1024, 768, 256, T), UsagePage.TryRead(UsageRow("CycleDataTrasfer", "1 GB", "768 MB", "N/A"), T));
+            Equal<AccountUsage?>(null, UsagePage.TryRead(UsageRow("CycleDataTrasfer", "<i>unknown</i>", "2 MB", ""), T));
+            return Task.CompletedTask;
+        });
+        await Test("old Urmia settings gain the data portal and custom groups keep their own configuration", () =>
+        {
+            var config = Config();
+            var group = config.Groups[0];
+            group.UsagePortalUrl = null;
+            var other = new NetworkGroup { Name = "Other", Ssids = ["Other"], Portals = [new() { Url = "https://other.example.test:8090/" }] };
+            config.Groups.Add(other);
+            config.Validate();
+            Equal(NetworkGroup.UrmiaUsagePortal, group.UsagePortalUrl);
+            Equal("", other.UsagePortalUrl);
+            group.UsageCertificateSha256 = new string('B', 64);
+            group.Accounts[0].LastUsage = new(0, 0, 0, T);
+            var template = config.NetworkTemplate().Groups[0];
+            Equal("", template.UsageCertificateSha256);
+            Equal(0, template.Accounts.Count);
+            group.UsagePortalUrl = "";
+            config.Validate();
+            Equal("", group.UsagePortalUrl);
+            Equal("", group.UsageCertificateSha256);
+            Equal<AccountUsage?>(null, group.Accounts[0].LastUsage);
+            return Task.CompletedTask;
+        });
+        await Test("usage keeps identity on the active account and disregards a late read after a credential change", async () =>
+        {
+            var config = Config();
+            var group = config.Groups[0];
+            group.Accounts[1].Label = group.Accounts[0].Label;
+            var first = group.Accounts[0].Id;
+            var second = group.Accounts[1].Id;
+            var store = new MemoryStore();
+            var portal = new FakeFactory();
+            using var engine = new ConnectionEngine(config, store, portal, new ActivityLog());
+            await engine.TickAsync(Net(), T);
+            Equal(first, engine.Status.AccountId);
+            Equal<UsageTarget?>(null, await engine.GetUsageTargetAsync(group.Id, second, true, default));
+            var target = await engine.GetUsageTargetAsync(group.Id, first, true, default) ?? throw new Exception("No active usage target.");
+            Equal(Campus, target.Link);
+            var usage = new AccountUsage(1024, 256, 768, T);
+            await engine.SaveUsageAsync(target, usage, default);
+            Equal(usage, store.Last!.Groups[0].Accounts[0].LastUsage);
+            Equal<AccountUsage?>(null, store.Last.Groups[0].Accounts[1].LastUsage);
+            Equal(0, portal.Logouts);
+
+            var replacement = engine.SnapshotConfig();
+            replacement.Groups[0].Accounts[0].Password = "changed-test-password";
+            await engine.ApplyConfigAsync(replacement);
+            await engine.SaveUsageAsync(target, usage, default);
+            Equal<AccountUsage?>(null, engine.SnapshotConfig().Groups[0].Accounts[0].LastUsage);
+        });
+        await Test("usage certificate approval is limited to the configured data server", async () =>
+        {
+            var config = Config(1);
+            var group = config.Groups[0];
+            var loginKey = new string('A', 64);
+            group.Portals[0].CertificateSha256 = loginKey;
+            using var engine = new ConnectionEngine(config, new MemoryStore(), new FakeFactory(), new ActivityLog());
+            var cert = new CertificateInfo(group.Id, group.UsagePortalUrl!, new string('B', 64), "Test", "Test", DateTime.UtcNow.AddDays(1), false);
+            Check(!await engine.ApproveUsageCertificateAsync(cert with { Url = "https://old.example.test/" }, "", default));
+            Check(await engine.ApproveUsageCertificateAsync(cert, "", default));
+            Check(!await engine.ApproveUsageCertificateAsync(cert, "", default));
+            var saved = engine.SnapshotConfig().Groups[0];
+            Equal(cert.Fingerprint, saved.UsageCertificateSha256);
+            Equal(loginKey, saved.Portals[0].CertificateSha256);
+        });
+        await Test("usage portal reads quota over pinned TLS with its own cookie and ends only that session", async () =>
+        {
+            const string userCookie = "user_portal=usage-session";
+            const string csrf = "unit-test-csrf-token";
+            await using var server = new MockPortal();
+            server.Respond = request =>
+            {
+                if (request.Path.EndsWith("/myaccount/login.jsp", StringComparison.Ordinal))
+                    return new(200, "<html>Sign in</html>", $"Set-Cookie: {userCookie}; Path=/userportal; Secure\r\n");
+                if (request.Path == "/userportal/Controller") return new(200, """{"status":"200"}""");
+                if (request.Path.EndsWith("/myaccount/index.jsp", StringComparison.Ordinal))
+                    return new(200, $"<script>Cyber.c$rFt0k3n = '{csrf}';</script>");
+                if (request.Path.Contains("/AccountStatus.jsp?", StringComparison.Ordinal))
+                    return new(200, UsageRow("CycleDataTrasfer", "2 GB", "512 MB", "1536 MB"));
+                return new(200, "done");
+            };
+            const string username = "Test+user'42";
+            const string password = "Synthetic &=% رمز";
+            var endpoint = new PortalEndpoint { Url = server.Url, CertificateSha256 = server.Fingerprint };
+            var client = new UsagePortalClient();
+            var data = await client.ReadAsync(new("group", "account", username, password, endpoint, LocalLink), default);
+            Equal<decimal?>(2048m, data.TotalMb);
+            Equal<decimal?>(1536m, data.RemainingMb);
+            var requests = server.Requests.ToArray();
+            Equal(5, requests.Length);
+            Equal("POST", requests[1].Method);
+            Equal("451", requests[1].Form["mode"]);
+            Equal(userCookie, requests[1].Headers["Cookie"]);
+            using var credentials = JsonDocument.Parse(requests[1].Form["json"]);
+            Equal(username, credentials.RootElement.GetProperty("username").GetString());
+            Equal(password, credentials.RootElement.GetProperty("password").GetString());
+            Equal(csrf, requests[3].Headers["X-CSRF-Token"]);
+            Equal("XMLHttpRequest", requests[3].Headers["X-Requested-With"]);
+            Equal("/userportal/webpages/logout.jsp?webclient=myaccount", requests[4].Path);
+        });
+        await Test("usage sends no HTTP requests to an unapproved data portal and never follows redirects", async () =>
+        {
+            await using var server = new MockPortal { Status = 302 };
+            var endpoint = new PortalEndpoint { Url = server.Url };
+            var client = new UsagePortalClient();
+            var target = new UsageTarget("group", "account", "student", "synthetic", endpoint, LocalLink);
+            await Throws<CertificateApprovalException>(() => client.ReadAsync(target, default));
+            Equal(0, server.Requests.Count);
+            endpoint.CertificateSha256 = server.Fingerprint;
+            await Throws<PortalTransportException>(() => client.ReadAsync(target, default));
+            Equal("GET", server.Requests.Single().Method);
+        });
         Console.WriteLine($"\n{_passed} passed; {_failed} failed."); return _failed == 0 ? 0 : 1;
     }
 
@@ -466,6 +597,7 @@ internal static class Program
         }
     }
     private sealed record Captured(string Method, string Path, Dictionary<string, string> Form, Dictionary<string, string> Headers, string SourceAddress);
+    private sealed record MockReply(int Status, string Body, string Headers = "");
     private static Dictionary<string, string> ParseForm(string text) => text.Split('&', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Split('=', 2)).ToDictionary(p => WebUtility.UrlDecode(p[0]), p => WebUtility.UrlDecode(p.Length > 1 ? p[1] : ""));
     private sealed class MockPortal : IAsyncDisposable
     {
@@ -476,6 +608,7 @@ internal static class Program
         public System.Collections.Concurrent.ConcurrentQueue<Captured> Requests { get; } = new();
         public string Page = "<html><script src='javascript/validation/httpclient.js'></script></html>";
         public int Status = 200;
+        public Func<Captured, MockReply>? Respond;
         public string Url { get; }
         public string Fingerprint => Convert.ToHexString(SHA256.HashData(_cert.RawData));
         public MockPortal()
@@ -511,10 +644,12 @@ internal static class Program
                             var length = lengthHeader is null ? 0 : int.Parse(lengthHeader.Split(':', 2)[1]); var body = new byte[length];
                             await ssl.ReadExactlyAsync(body, _stop.Token);
                             var headers = lines.Skip(1).Where(s => s.Contains(':')).Select(s => s.Split(':', 2)).ToDictionary(p => p[0], p => p[1].Trim(), StringComparer.OrdinalIgnoreCase);
-                            Requests.Enqueue(new(first[0], first[1], ParseForm(Encoding.UTF8.GetString(body)), headers, ((IPEndPoint)tcp.Client.RemoteEndPoint!).Address.ToString()));
-                            var response = first[1] == "/" ? Page : first[1].StartsWith("/live?", StringComparison.Ordinal) ? LiveXml("ack") : LoginXml(first[1] == "/logout.xml" ? "LOGIN" : "LIVE");
-                            var payload = Encoding.UTF8.GetBytes(response);
-                            var responseHeader = Encoding.ASCII.GetBytes($"HTTP/1.1 {Status} Test\r\nContent-Type: text/xml; charset=utf-8\r\nContent-Length: {payload.Length}\r\nLocation: https://redirect.invalid/\r\nConnection: close\r\n\r\n");
+                            var captured = new Captured(first[0], first[1], ParseForm(Encoding.UTF8.GetString(body)), headers, ((IPEndPoint)tcp.Client.RemoteEndPoint!).Address.ToString());
+                            Requests.Enqueue(captured);
+                            var response = Respond?.Invoke(captured) ?? new MockReply(Status,
+                                first[1] == "/" ? Page : first[1].StartsWith("/live?", StringComparison.Ordinal) ? LiveXml("ack") : LoginXml(first[1] == "/logout.xml" ? "LOGIN" : "LIVE"));
+                            var payload = Encoding.UTF8.GetBytes(response.Body);
+                            var responseHeader = Encoding.ASCII.GetBytes($"HTTP/1.1 {response.Status} Test\r\nContent-Type: text/xml; charset=utf-8\r\nContent-Length: {payload.Length}\r\nLocation: https://redirect.invalid/\r\n{response.Headers}Connection: close\r\n\r\n");
                             await ssl.WriteAsync(responseHeader, _stop.Token); await ssl.WriteAsync(payload, _stop.Token); await ssl.FlushAsync(_stop.Token);
                         }
                         catch (Exception ex) when (ex is IOException or AuthenticationException or OperationCanceledException) { }

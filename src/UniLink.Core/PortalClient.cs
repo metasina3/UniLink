@@ -1,10 +1,3 @@
-using System.Net;
-using System.Net.Security;
-using System.Net.Sockets;
-using System.Security.Authentication;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -34,64 +27,11 @@ public sealed class PortalFactory(Func<NetworkLink, bool>? verifyInterface = nul
 
 public sealed class PortalSession : IPortalSession
 {
-    private readonly HttpClient _http;
-    private readonly PortalEndpoint _endpoint;
-    private CertificateInfo? _certificate;
+    private readonly PortalTransport _transport;
 
     public PortalSession(PortalEndpoint endpoint, NetworkLink link, Func<NetworkLink, bool>? verifyInterface = null)
     {
-        _endpoint = endpoint;
-        var handler = new SocketsHttpHandler
-        {
-            UseProxy = false, AllowAutoRedirect = false, CookieContainer = new CookieContainer(), UseCookies = true,
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            ConnectTimeout = TimeSpan.FromSeconds(7), PooledConnectionLifetime = TimeSpan.FromMinutes(4),
-            SslOptions = new SslClientAuthenticationOptions { EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13 }
-        };
-        handler.SslOptions.RemoteCertificateValidationCallback = (_, certificate, _, errors) =>
-        {
-            if (certificate is null) return false;
-            using var cert = new X509Certificate2(certificate);
-            var hash = Convert.ToHexString(SHA256.HashData(cert.RawData));
-            if (_endpoint.CertificateSha256.Length > 0 && string.Equals(hash, _endpoint.CertificateSha256, StringComparison.OrdinalIgnoreCase)) return true;
-            // Even a public CA certificate is confirmed once. This also makes portal-only detection safe.
-            _certificate = new CertificateInfo(endpoint.Id, endpoint.Url, hash, cert.Subject, cert.Issuer, cert.NotAfter,
-                endpoint.CertificateSha256.Length > 0);
-            return false;
-        };
-        handler.ConnectCallback = async (context, ct) =>
-        {
-            var local = IPAddress.Parse(link.LocalAddress);
-            if (verifyInterface?.Invoke(link) == false) throw new HttpRequestException("Selected physical interface is no longer available.");
-            if (OperatingSystem.IsWindows() && (link.InterfaceIndex <= 0 || link.InterfaceIndex > 0x00ffffff))
-                throw new HttpRequestException("A verified base interface index is required; the default route is never used.");
-            var addresses = await InterfaceDns.ResolveAsync(context.DnsEndPoint.Host, link.InterfaceIndex, ct);
-            Exception? last = null;
-            foreach (var remote in addresses.Where(a => a.AddressFamily == local.AddressFamily))
-            {
-                if (verifyInterface?.Invoke(link) == false) throw new HttpRequestException("Selected physical interface changed before connecting.");
-                var socket = new Socket(local.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                try
-                {
-                    socket.Bind(new IPEndPoint(local, 0));
-                    if (OperatingSystem.IsWindows() && local.AddressFamily == AddressFamily.InterNetwork && link.InterfaceIndex > 0)
-                        socket.SetSocketOption(SocketOptionLevel.IP, (SocketOptionName)31, IPAddress.HostToNetworkOrder(link.InterfaceIndex)); // IP_UNICAST_IF
-                    await socket.ConnectAsync(new IPEndPoint(remote, context.DnsEndPoint.Port), ct);
-                    return new NetworkStream(socket, ownsSocket: true);
-                }
-                catch (Exception ex) when (ex is SocketException or OperationCanceledException)
-                {
-                    socket.Dispose(); last = ex;
-                    if (ct.IsCancellationRequested) throw;
-                }
-            }
-            throw new HttpRequestException("No reachable portal address on this interface.", last);
-        };
-        _http = new HttpClient(handler) { BaseAddress = new Uri(endpoint.Url), Timeout = TimeSpan.FromSeconds(12), MaxResponseContentBufferSize = 262144 };
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("UniLink/1.2.1 (Windows; University Wi-Fi Assistant)");
-        _http.DefaultRequestHeaders.Referrer = new Uri(endpoint.Url);
-        _http.DefaultRequestHeaders.Accept.ParseAdd("*/*");
-        _http.DefaultRequestHeaders.CacheControl = new() { NoCache = true, NoStore = true };
+        _transport = new PortalTransport(endpoint, link, verifyInterface);
     }
 
     private static string Timestamp() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -113,7 +53,7 @@ public sealed class PortalSession : IPortalSession
                 ["a"] = Timestamp(), ["producttype"] = "0"
             })
         };
-        request.Headers.TryAddWithoutValidation("Origin", _http.BaseAddress!.GetLeftPart(UriPartial.Authority));
+        request.Headers.TryAddWithoutValidation("Origin", _transport.BaseAddress.GetLeftPart(UriPartial.Authority));
         return Parse(await SendAsync(request, ct), false, group);
     }
 
@@ -131,36 +71,12 @@ public sealed class PortalSession : IPortalSession
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             { ["mode"] = "193", ["username"] = account.Username.Replace("'", "''"), ["a"] = Timestamp(), ["producttype"] = "0" })
         };
-        request.Headers.TryAddWithoutValidation("Origin", _http.BaseAddress!.GetLeftPart(UriPartial.Authority));
+        request.Headers.TryAddWithoutValidation("Origin", _transport.BaseAddress.GetLeftPart(UriPartial.Authority));
         _ = await SendAsync(request, ct);
     }
 
-    private async Task<string> SendAsync(HttpRequestMessage request, CancellationToken ct)
-    {
-        _certificate = null;
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(12));
-        var requestToken = timeout.Token;
-        try
-        {
-            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestToken);
-            if (!response.IsSuccessStatusCode) throw new PortalTransportException("Portal HTTP status " + (int)response.StatusCode + ". Redirects are never followed.");
-            if (response.Content.Headers.ContentLength > 262144) throw new PortalTransportException("Portal response exceeds the size limit.");
-            using var stream = await response.Content.ReadAsStreamAsync(requestToken);
-            using var buffer = new MemoryStream();
-            var bytes = new byte[4096]; int n;
-            while ((n = await stream.ReadAsync(bytes, requestToken)) > 0)
-            {
-                if (buffer.Length + n > 262144) throw new PortalTransportException("Portal response exceeds the size limit.");
-                buffer.Write(bytes, 0, n);
-            }
-            return Encoding.UTF8.GetString(buffer.ToArray());
-        }
-        catch (HttpRequestException) when (_certificate is not null) { throw new CertificateApprovalException(_certificate); }
-        catch (HttpRequestException) { throw new PortalTransportException("Portal connection failed (network, TLS or DNS)."); }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { throw new PortalTransportException("Portal request timed out."); }
-        catch (IOException) { throw new PortalTransportException("Portal response was interrupted."); }
-    }
+    private async Task<string> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+        (await _transport.SendAsync(request, ct)).Body;
 
     public static PortalReply Parse(string xml, bool live, NetworkGroup group)
     {
@@ -185,5 +101,5 @@ public sealed class PortalSession : IPortalSession
         }
         catch (XmlException) { return new(ReplyKind.Unknown, "Invalid XML from portal."); }
     }
-    public void Dispose() => _http.Dispose();
+    public void Dispose() => _transport.Dispose();
 }

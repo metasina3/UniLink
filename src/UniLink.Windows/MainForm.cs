@@ -5,7 +5,7 @@ using UniLink.Core;
 
 namespace UniLink.Windows;
 
-internal sealed class MainForm : AdaptiveForm
+internal sealed partial class MainForm : AdaptiveForm
 {
     private readonly ConnectionEngine _engine;
     private readonly WindowsNetworkMonitor? _network;
@@ -74,6 +74,7 @@ internal sealed class MainForm : AdaptiveForm
         };
         Disposed += (_, _) =>
         {
+            CancelUsage();
             _timer.Stop(); _timer.Dispose(); _tray?.Dispose(); _tips.Dispose();
             if (_network is not null) _network.Changed -= OnNetworkChanged;
             if (!_uiCheck) { SystemEvents.PowerModeChanged -= OnPowerChanged; SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; }
@@ -91,7 +92,7 @@ internal sealed class MainForm : AdaptiveForm
     {
         var brand = Theme.Label("UniLink", 14, true); brand.ForeColor = Theme.AccentHover;
         var caption = Theme.Label("University Wi-Fi", 9); caption.ForeColor = Theme.Muted;
-        var version = Theme.Label("v1.2.1", 8.5f); version.ForeColor = Theme.Muted;
+        var version = Theme.Label("v" + typeof(MainForm).Assembly.GetName().Version?.ToString(3), 8.5f); version.ForeColor = Theme.Muted;
         var exit = Theme.Button("Exit"); exit.BackColor = Theme.Surface; exit.Click += async (_, _) => await ExitAsync();
         _header.Controls.AddRange([brand, caption, version, exit]);
         foreach (var name in new[] { "Connection", "Networks", "Accounts", "Activity", "Settings" })
@@ -114,9 +115,9 @@ internal sealed class MainForm : AdaptiveForm
     public void ShowWindow() { if (IsDisposed) return; Show(); WindowState = FormWindowState.Normal; Activate(); }
     private void OnDisplaySettingsChanged(object? sender, EventArgs e)
     { if (IsHandleCreated && !IsDisposed) BeginInvoke(() => { if (!IsDisposed) { Theme.FitToScreen(this, false); PerformLayout(); } }); }
-    private void OnNetworkChanged() => _engine.NetworkChanged();
+    private void OnNetworkChanged() { _engine.NetworkChanged(); CancelUsage(); }
     private void OnPowerChanged(object sender, PowerModeChangedEventArgs e)
-    { if (e.Mode is PowerModes.Resume or PowerModes.Suspend) _engine.NetworkChanged(); }
+    { if (e.Mode is PowerModes.Resume or PowerModes.Suspend) OnNetworkChanged(); }
     private void OnLog(string line)
     {
         if (!IsHandleCreated || IsDisposed) return;
@@ -126,7 +127,11 @@ internal sealed class MainForm : AdaptiveForm
     private async Task TickAsync()
     {
         if (_ticking || _exiting || _network is null) return; _ticking = true;
-        try { await _engine.TickAsync(_network.Read(), DateTimeOffset.UtcNow); if (!_exiting && !IsDisposed) RenderStatus(); }
+        try
+        {
+            await _engine.TickAsync(_network.Read(), DateTimeOffset.UtcNow);
+            if (!_exiting && !IsDisposed) { RenderStatus(); RefreshActiveUsageIfDue(); }
+        }
         catch (Exception ex) { _log.Write("Network check could not complete (" + ex.GetType().Name + ")."); }
         finally { _ticking = false; }
     }
@@ -168,24 +173,34 @@ internal sealed class MainForm : AdaptiveForm
             var label = Theme.Label(key, 9); label.ForeColor = Theme.Muted; captions.Add(label);
             var value = Theme.Label("—", 9); _facts[key] = value; details.Controls.AddRange([label, value]);
         }
+        BuildUsageStrip();
+        details.Controls.Add(_usageStrip);
         var groupCaption = Theme.Label("Network group", 9); groupCaption.ForeColor = Theme.Muted;
         var connect = Theme.Button("Connect", true); connect.Click += async (_, _) => await Command(() => _engine.ConnectAsync((_connectGroup.SelectedItem as Choice)?.Id));
         var pause = Theme.Button("Pause & sign out"); pause.Click += async (_, _) => await Command(_engine.PauseAsync);
-        var portal = Theme.Link("Open login page"); portal.LinkClicked += (_, _) =>
-        { var g = _engine.SnapshotConfig().Groups.FirstOrDefault(g => g.Id == (_connectGroup.SelectedItem as Choice)?.Id); if (g?.Portals.FirstOrDefault() is { } p) Open(p.Url); };
+        void OpenLoginPage()
+        {
+            var group = _engine.SnapshotConfig().Groups.FirstOrDefault(g => g.Id == (_connectGroup.SelectedItem as Choice)?.Id);
+            if (group?.Portals.FirstOrDefault() is { } endpoint) Open(endpoint.Url);
+        }
+        var portal = Theme.Link("Open login page"); portal.LinkClicked += (_, _) => OpenLoginPage();
         var privacy = Theme.Link("Wi-Fi privacy settings"); privacy.LinkClicked += (_, _) => Open("ms-settings:privacy-location");
+        var more = MoreButton(("Open login page", () => { OpenLoginPage(); return Task.CompletedTask; }),
+            ("Wi-Fi privacy settings", () => { Open("ms-settings:privacy-location"); return Task.CompletedTask; }));
         var note = Theme.Label("Runs in the tray when closed.", 8.5f); note.ForeColor = Theme.Muted;
-        canvas.Controls.AddRange([status, details, groupCaption, _connectGroup, connect, pause, portal, privacy, note]);
+        canvas.Controls.AddRange([status, details, groupCaption, _connectGroup, connect, pause, more, portal, privacy, note]);
         canvas.Arrange = () =>
         {
             int P(int n) => Theme.Px(canvas, n); var w = canvas.ClientSize.Width; var h = canvas.ClientSize.Height; var compact = h < P(320);
             var gap = P(compact ? 6 : 12); var statusH = P(compact ? 54 : 78);
-            var detailsH = P(compact ? 76 : 116); var inset = P(compact ? 10 : 14); var reserve = _trust.Visible ? P(162) : 0;
+            var factsH = P(compact ? 74 : 116);
+            var stripH = _showUsage ? P(compact ? 28 : 44) : 0;
+            var inset = P(compact ? 10 : 14); var reserve = _trust.Visible ? P(162) : 0;
             status.SetBounds(0, 0, w, statusH);
             _state.SetBounds(inset, P(compact ? 1 : 6), Math.Max(0, w - inset * 2 - reserve), P(compact ? 30 : 32));
             _detail.SetBounds(inset, P(compact ? 31 : 40), Math.Max(0, w - inset * 2 - reserve), P(compact ? 22 : 30));
             _trust.SetBounds(w - P(156), (statusH - P(32)) / 2, P(144), P(32));
-            details.SetBounds(0, status.Bottom + gap, w, detailsH); var half = w / 2; var rowH = (detailsH - P(12)) / 3;
+            details.SetBounds(0, status.Bottom + gap, w, factsH + stripH); var half = w / 2; var rowH = (factsH - P(12)) / 3;
             var keys = _facts.Keys.ToArray();
             for (var index = 0; index < keys.Length; index++)
             {
@@ -193,12 +208,18 @@ internal sealed class MainForm : AdaptiveForm
                 captions[index].SetBounds(x, P(6) + row * rowH, labelW, rowH);
                 _facts[keys[index]].SetBounds(x + labelW + P(6), P(6) + row * rowH, Math.Max(0, half - inset * 2 - labelW - P(6)), rowH);
             }
+            _usageStrip.SetBounds(inset, factsH - P(1), Math.Max(0, w - inset * 2), Math.Max(0, stripH - P(1)));
             var actionTop = details.Bottom + gap; groupCaption.Visible = !compact;
             groupCaption.SetBounds(0, actionTop, w, P(20)); if (!compact) actionTop += P(24);
             var comboHeight = _connectGroup.PreferredHeight; var actionsH = Math.Max(P(32), comboHeight);
-            _connectGroup.SetBounds(0, actionTop + (actionsH - comboHeight) / 2, Math.Max(0, w - P(252)), comboHeight);
-            connect.SetBounds(w - P(242), actionTop, P(98), P(32)); pause.SetBounds(w - P(136), actionTop, P(136), P(32));
             var linksTop = actionTop + actionsH + gap;
+            var collapseLinks = linksTop + P(22) > h;
+            more.Visible = collapseLinks;
+            portal.Visible = privacy.Visible = note.Visible = !collapseLinks;
+            var actionsRight = w - (collapseLinks ? P(78) : 0);
+            _connectGroup.SetBounds(0, actionTop + (actionsH - comboHeight) / 2, Math.Max(0, actionsRight - P(252)), comboHeight);
+            connect.SetBounds(actionsRight - P(242), actionTop, P(98), P(32)); pause.SetBounds(actionsRight - P(136), actionTop, P(136), P(32));
+            more.SetBounds(w - P(72), actionTop, P(72), P(32));
             portal.SetBounds(0, linksTop, P(116), P(22)); privacy.SetBounds(P(130), linksTop, P(152), P(22));
             note.SetBounds(P(300), linksTop, Math.Max(0, w - P(300)), P(22));
         };
@@ -259,16 +280,25 @@ internal sealed class MainForm : AdaptiveForm
         {
             if (SelectedId(_accounts) is not { } id || (_accountGroup.SelectedItem as Choice)?.Id is not { } groupId) return;
             if (MessageBox.Show(this, "Try this account again now? Use this after fixing its password or adding more quota.", "UniLink", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) await _engine.ResetAccountAsync(groupId, id);
-        })));
+        })), ("Check all data allowances", async () =>
+        {
+            if (_accountGroup.SelectedItem is Choice group) await ReadUsageAsync(group.Id, null);
+        }));
         var bar = new ActionBar(); bar.Add(add, 116); bar.Add(edit, 60); bar.Add(remove, 76); bar.Add(primary, 100); bar.Add(use, 104); bar.Add(more, 72);
         _accountActions.AddRange([edit, remove, primary, use]); var table = new CardPanel(); table.Controls.Add(_accounts);
         _emptyAccounts = EmptyGrid(table, "No accounts yet. Add your student username and password.");
-        layout.Controls.AddRange([_accountGroup, bar, table]);
-        Theme.Columns(_accounts, ("name", "Account", 125, 125), ("username", "Username", 140, 150), ("role", "Priority", 80, 80), ("state", "Status", 190, 220));
+        layout.Controls.AddRange([_accountGroup, _accountUsageButton, bar, table]);
+        _accountUsageButton.Click += async (_, _) =>
+        {
+            if (_accountGroup.SelectedItem is Choice group && SelectedId(_accounts) is { } accountId) await ReadUsageAsync(group.Id, accountId);
+        };
+        Theme.Columns(_accounts, ("name", "Account", 100, 110), ("username", "Username", 104, 124), ("role", "Priority", 68, 70),
+            ("usage", "Data left", 130, 153), ("state", "Status", 128, 163));
         _accounts.SelectionChanged += (_, _) => UpdateSelectionActions(); _accounts.CellDoubleClick += async (_, e) => { if (e.RowIndex >= 0) await EditAccountAsync(SelectedId(_accounts)); };
         layout.Arrange = () =>
         {
-            _accountGroup.SetBounds(0, 0, Math.Min(layout.Width, Theme.Px(layout, 360)), _accountGroup.PreferredHeight);
+            _accountGroup.SetBounds(0, 0, Math.Max(0, Math.Min(layout.Width - Theme.Px(layout, 140), Theme.Px(layout, 360))), _accountGroup.PreferredHeight);
+            _accountUsageButton.SetBounds(layout.Width - Theme.Px(layout, 128), 0, Theme.Px(layout, 128), Theme.Px(layout, 28));
             bar.SetBounds(0, Theme.Px(layout, 38), layout.Width, Theme.Px(layout, 32));
             table.SetBounds(0, Theme.Px(layout, 78), layout.Width, Math.Max(0, layout.Height - Theme.Px(layout, 78)));
         };
@@ -277,6 +307,7 @@ internal sealed class MainForm : AdaptiveForm
     {
         foreach (var button in _accountActions) button.Enabled = SelectedId(_accounts) is not null;
         foreach (var button in _groupActions) button.Enabled = SelectedId(_groups) is not null;
+        UpdateAccountUsageAction();
     }
     private void BuildActivity()
     {
@@ -347,14 +378,17 @@ internal sealed class MainForm : AdaptiveForm
     {
         if (_accountGroup.SelectedItem is not Choice choice) { _accounts.Rows.Clear(); _emptyAccounts.Visible = true; _accountListKey = ""; return; }
         var group = _engine.SnapshotConfig().Groups.FirstOrDefault(g => g.Id == choice.Id); if (group is null) return;
-        var key = group.Id + group.DefaultAccountId + string.Join("|", group.Accounts.Select(a => $"{a.Id}:{a.Label}:{a.Username}:{a.Enabled}:{a.ExhaustedMonth}:{a.QuotaNextProbeAt}:{a.NeedsAttention}"));
+        var key = group.Id + group.DefaultAccountId + group.UsagePortalUrl + string.Join("|", group.Accounts.Select(a =>
+            $"{a.Id}:{a.Label}:{a.Username}:{a.Enabled}:{a.ExhaustedMonth}:{a.QuotaNextProbeAt}:{a.NeedsAttention}:{a.LastUsage}:{UsageStatus(group, a)}"));
         if (_accountListKey == key) return; _accountListKey = key;
         var selected = SelectedId(_accounts); _accounts.Rows.Clear();
         foreach (var a in group.Accounts)
         {
             var state = !a.Enabled ? "Disabled" : a.NeedsAttention ? "Check credentials" : !a.Eligible(group.MonthAt(DateTimeOffset.UtcNow), DateTimeOffset.UtcNow)
                 ? a.QuotaNextProbeAt is { } retry ? "Quota reset probe: " + retry.ToLocalTime().ToString("HH:mm") : "Quota used — resets next month" : "Ready";
-            var row = _accounts.Rows[_accounts.Rows.Add(a.Label, a.Username, a.Id == group.DefaultAccountId ? "Default" : "Backup", state)]; row.Tag = a.Id;
+            var row = _accounts.Rows[_accounts.Rows.Add(a.Label, a.Username, a.Id == group.DefaultAccountId ? "Default" : "Backup", UsageStatus(group, a), state)];
+            row.Tag = a.Id;
+            row.Cells["usage"].ToolTipText = UsageDescription(group, a);
         }
         SelectRow(_accounts, selected); _emptyAccounts.Visible = _accounts.Rows.Count == 0; UpdateSelectionActions();
     }
@@ -375,6 +409,7 @@ internal sealed class MainForm : AdaptiveForm
         using var dialog = new GroupEditor(previous); if (dialog.ShowDialog(this) != DialogResult.OK) return;
         if (previous is null) config.Groups.Add(dialog.Result); else config.Groups[config.Groups.IndexOf(previous)] = dialog.Result;
         await _engine.ApplyConfigAsync(config);
+        ForgetUsageFeedback(dialog.Result);
     });
     private async Task EditAccountAsync(string? id) => await Command(async () =>
     {
@@ -384,6 +419,7 @@ internal sealed class MainForm : AdaptiveForm
         if (previous is null) { group.Accounts.Add(dialog.Result); group.DefaultAccountId ??= dialog.Result.Id; }
         else group.Accounts[group.Accounts.IndexOf(previous)] = dialog.Result;
         await _engine.ApplyConfigAsync(config);
+        _usageErrors.Remove(dialog.Result.Id);
     });
     private async Task MoveGroupAsync(int direction) => await Command(async () =>
     {
@@ -413,11 +449,12 @@ internal sealed class MainForm : AdaptiveForm
             ConnectionState.Retry => "Waiting to retry", _ => "Waiting for campus Wi-Fi"
         };
         _state.ForeColor = s.State == ConnectionState.Online ? Theme.Green : s.State is ConnectionState.Attention or ConnectionState.Certificate ? Theme.Red : Theme.Accent;
-        _detail.Text = s.Detail; _tips.SetToolTip(_detail, s.Detail); _trust.Visible = _engine.PendingCertificate is not null || _uiCheck && s.State == ConnectionState.Certificate; _trust.Enabled = _engine.PendingCertificate is not null; _dashboard.PerformLayout();
+        _detail.Text = s.Detail; _tips.SetToolTip(_detail, s.Detail); _trust.Visible = _engine.PendingCertificate is not null || _uiCheck && s.State == ConnectionState.Certificate; _trust.Enabled = _engine.PendingCertificate is not null;
         _facts["Network"].Text = Empty(s.Ssid); _facts["Group"].Text = Empty(s.Group); _facts["Account"].Text = Empty(s.Account); _facts["Portal"].Text = Empty(s.Portal);
         _facts["Last keepalive"].Text = s.LastHeartbeat?.ToLocalTime().ToString("HH:mm:ss") ?? "—";
         _facts["Next action"].Text = s.NextAction is { } next ? next.ToLocalTime().ToString(next.ToLocalTime().Date == DateTime.Now.Date ? "HH:mm:ss" : "yyyy-MM-dd HH:mm") : "—";
         foreach (var fact in _facts.Values) _tips.SetToolTip(fact, fact.Text);
+        RenderUsage(s); _dashboard.PerformLayout();
         if (_tray is not null) _tray.Text = "UniLink — " + _state.Text;
         if (_tray is not null && _lastTrayState != s.State && s.State is ConnectionState.Certificate or ConnectionState.Attention && !Visible)
             _tray.ShowBalloonTip(5000, "UniLink", _state.Text + ". Open UniLink to continue.", ToolTipIcon.Info);
@@ -451,13 +488,13 @@ internal sealed class MainForm : AdaptiveForm
     private async void OnClosing(object? sender, FormClosingEventArgs e)
     {
         if (_exiting || _uiCheck) return;
-        if (e.CloseReason is CloseReason.WindowsShutDown or CloseReason.TaskManagerClosing) { _timer.Stop(); _engine.NetworkChanged(); return; }
+        if (e.CloseReason is CloseReason.WindowsShutDown or CloseReason.TaskManagerClosing) { _timer.Stop(); OnNetworkChanged(); return; }
         e.Cancel = true;
         if (_engine.SnapshotConfig().CloseToTray) Hide(); else await ExitAsync();
     }
     private async Task ExitAsync()
     {
-        if (_exiting) return; _exiting = true; _timer.Stop();
+        if (_exiting) return; _exiting = true; _timer.Stop(); CancelUsage();
         try { await _engine.PauseAsync(); }
         finally { if (_tray is not null) _tray.Visible = false; Close(); }
     }

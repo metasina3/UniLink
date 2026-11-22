@@ -16,24 +16,33 @@ internal static class UiChecks
             group.Accounts = [new Account { Label = "My student account", Username = "demo.student", Password = "synthetic-password" },
                 new Account { Label = "حساب جایگزین دانشگاه", Username = "demo.backup", Password = "synthetic-password", ExhaustedMonth = group.MonthAt(DateTimeOffset.UtcNow) }];
             group.DefaultAccountId = group.Accounts[0].Id;
+            group.Accounts[0].LastUsage = new(12_288m, 8_960m, 3_328m, DateTimeOffset.UtcNow);
+            group.Accounts[1].LastUsage = new(null, 512m, null, DateTimeOffset.UtcNow);
             var log = new ActivityLog(); log.Write("Sign-in accepted; background keepalive started."); log.Write("Keepalive accepted.");
             using var engine = new ConnectionEngine(config, new NoDiskStore(), new NoNetworkFactory(), log);
             using (var form = new MainForm(engine, null, log, false, true))
             {
                 form.Show(); Pump(form); form.MinimumSize = Size.Empty;
-                form.PreviewStatus = new(ConnectionState.Online, "Signed in. Your session is being kept alive in the background.", "UUWN", group.Name, group.Accounts[0].Label, group.Portals[0].Url, DateTimeOffset.UtcNow.AddSeconds(180), DateTimeOffset.UtcNow);
+                form.PreviewStatus = new(ConnectionState.Online, "Signed in. Your session is being kept alive in the background.", "UUWN", group.Name, group.Accounts[0].Label, group.Portals[0].Url, DateTimeOffset.UtcNow.AddSeconds(180), DateTimeOffset.UtcNow, group.Id, group.Accounts[0].Id);
                 foreach (var (width, height) in new[] { (900, 550), (760, 420), (640, 340), (640, 300), (1100, 700) })
                 {
                     form.ClientSize = new Size(Theme.Px(form, width), Theme.Px(form, height)); Pump(form);
                     foreach (var page in new[] { "Connection", "Networks", "Accounts", "Activity", "Settings" })
                     {
                         form.InspectPage(page); Pump(form); CheckTree(form, failures, $"{page}/{width}x{height}");
+                        if (page == "Connection" && !Descendants(form).Any(c => c.Visible && c.Text == $"{3.25m:0.##} GB of 12 GB"))
+                            failures.Add("Connection: the active account's allowance is missing.");
                         if (page is "Networks" or "Accounts")
                             foreach (var grid in Descendants(form).OfType<DataGridView>().Where(g => g.Visible))
                                 if (grid.Height < Theme.Px(grid, 110)) failures.Add($"{page}: table too short");
                         Save(form, directory, $"{page.ToLowerInvariant()}-{width}x{height}-dpi{form.DeviceDpi}.png"); inspected++;
                     }
                 }
+                form.PreviewStatus = form.PreviewStatus! with { Account = group.Accounts[1].Label, AccountId = group.Accounts[1].Id };
+                form.InspectPage("Connection"); Pump(form); CheckTree(form, failures, "backup allowance");
+                if (!Descendants(form).Any(c => c.Visible && c.Text == "Unlimited · 512 MB used"))
+                    failures.Add("Connection: the backup account's allowance is missing.");
+                Save(form, directory, "connection-backup-allowance.png"); inspected++;
                 form.PreviewStatus = new(ConnectionState.Retry, "Unclassified portal response. A long explanatory message should stay inside the status card without covering any action buttons or the network details.");
                 form.InspectPage("Connection"); Pump(form); CheckTree(form, failures, "long status"); Save(form, directory, "connection-long-status.png"); inspected++;
                 form.PreviewStatus = new(ConnectionState.Certificate, "Approve the expected university server certificate before your first sign-in.", Portal: group.Portals[0].Url);

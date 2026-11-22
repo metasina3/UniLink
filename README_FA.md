@@ -8,15 +8,15 @@
 
 ## دانلود
 
-فایل اجرایی ویندوز، نصب‌کنندهٔ مک و فایل نصب اندروید در یک ریلیز قرار دارند. [دانلود نسخه‌های فعلی](https://github.com/metasina3/UniLink/releases/tag/bundle-2026.11.21)
+فایل اجرایی ویندوز، نصب‌کنندهٔ مک و فایل نصب اندروید در یک ریلیز قرار دارند. [دانلود نسخه‌های فعلی](https://github.com/metasina3/UniLink/releases/tag/bundle-2026.11.22)
 
 | سیستم‌عامل | نسخه | دانلود | راهنما |
 | --- | --- | --- | --- |
-| ویندوز ۱۰ از نسخهٔ ۲۰۰۴ و ویندوز ۱۱، نسخهٔ x64 | ۱٫۳٫۱ | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink.exe) | [راهنمای فارسی ویندوز](docs/README_FA.html) |
-| macOS ۱۲ به بالا | ۱٫۳٫۱ | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink-1.3.1-macOS.zip) | [راهنمای مک](docs/MACOS_GUIDE.md) |
-| اندروید ۸ به بالا | ۱٫۱۴٫۰ | [APK](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink-v1.14.0.apk) | [راهنمای فارسی اندروید](src/UniLink.Android/README_FA.md) |
+| ویندوز ۱۰ از نسخهٔ ۲۰۰۴ و ویندوز ۱۱، نسخهٔ x64 | ۱٫۴٫۰ | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink.exe) | [راهنمای فارسی ویندوز](docs/README_FA.html) |
+| macOS ۱۲ به بالا | ۱٫۳٫۱ | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.zip) | [راهنمای مک](docs/MACOS_GUIDE.md) |
+| اندروید ۸ به بالا | ۱٫۱۴٫۰ | [APK](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-v1.14.0.apk) | [راهنمای فارسی اندروید](src/UniLink.Android/README_FA.md) |
 
-- **ویندوز** — فایل `UniLink.exe` را مستقیم اجرا کن. محیط اجرای ‎.NET داخل همین فایل است. برای به‌روزرسانی، ابتدا برنامهٔ قبلی را ببند و فایل اجرایی را جایگزین کن.
+- **ویندوز** — فایل `UniLink.exe` را مستقیم اجرا کن. محیط اجرای ‎.NET داخل همین فایل است. برای به‌روزرسانی، ابتدا برنامهٔ قبلی را ببند و فایل اجرایی را جایگزین کن. حجم باقی‌ماندهٔ حساب متصل از کل سهمیه در Connection نمایش داده می‌شود. برای بررسی یک حساب در Accounts، دکمهٔ Check data را بزن.
 - **مک** — فایل DMG را باز کن و `UniLink.app` را به پوشهٔ Applications بکش.
 - **اندروید** — فایل APK را باز کن تا برنامه نصب شود.
 

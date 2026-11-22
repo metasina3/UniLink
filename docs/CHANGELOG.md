@@ -1,3 +1,9 @@
+# Windows 1.4.0
+
+- Show the connected account's remaining data and total allowance in Connection.
+- Check one or all saved accounts in Accounts. UniLink keeps the last reading and checks the connected account automatically when the Connection tab is open.
+- Use a separate certificate approval and session for the data portal.
+
 # Windows 1.3.1
 
 - Publish a standalone `UniLink.exe` with the .NET runtime and license notices embedded.
