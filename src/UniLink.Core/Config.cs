@@ -12,7 +12,12 @@ public sealed class AppConfig
     public AppConfig Clone() => JsonSerializer.Deserialize<AppConfig>(JsonSerializer.Serialize(this, JsonOptions), JsonOptions)!;
     public static AppConfig CreateDefault() => new()
     {
-        Groups = [new NetworkGroup { Name = "Urmia University", Ssids = ["UUWN"], Portals = [new PortalEndpoint { Url = "https://192.168.100.40:8090/" }] }]
+        Groups = [new NetworkGroup
+        {
+            Name = "Urmia University", Ssids = ["UUWN"],
+            Portals = [new PortalEndpoint { Url = "https://192.168.100.40:8090/" }],
+            UsagePortalUrl = NetworkGroup.UrmiaUsagePortal
+        }]
     };
 
     public void Validate()
@@ -30,15 +35,27 @@ public sealed class AppConfig
             {
                 if (!ids.Add(p.Id)) throw new InvalidDataException("Duplicate portal ID.");
                 p.Url = PortalEndpoint.NormalizeUrl(p.Url);
-                if (p.CertificateSha256.Length != 0 && (p.CertificateSha256.Length != 64 || !p.CertificateSha256.All(Uri.IsHexDigit))) throw new InvalidDataException("Invalid certificate fingerprint.");
+                ValidateFingerprint(p.CertificateSha256);
             }
+            // Existing Urmia groups can read quota even when saved before the usage setting existed.
+            g.UsagePortalUrl ??= g.Portals.Any(p => NetworkGroup.IsUrmiaLoginPortal(new Uri(p.Url))) ? NetworkGroup.UrmiaUsagePortal : "";
+            g.UsagePortalUrl = string.IsNullOrWhiteSpace(g.UsagePortalUrl) ? "" : PortalEndpoint.NormalizeUrl(g.UsagePortalUrl);
+            if (g.UsagePortalUrl.Length == 0) g.UsageCertificateSha256 = "";
+            ValidateFingerprint(g.UsageCertificateSha256);
             foreach (var a in g.Accounts)
             {
                 if (!ids.Add(a.Id) || string.IsNullOrWhiteSpace(a.Label) || string.IsNullOrWhiteSpace(a.Username) || string.IsNullOrEmpty(a.Password)) throw new InvalidDataException("Each account needs a name, username and password.");
+                if (g.UsagePortalUrl.Length == 0) a.LastUsage = null;
             }
             if (g.DefaultAccountId is not null && !g.Accounts.Any(a => a.Id == g.DefaultAccountId)) g.DefaultAccountId = null;
             if (g.QuotaPhrases.Any(string.IsNullOrWhiteSpace) || g.CredentialPhrases.Any(string.IsNullOrWhiteSpace)) throw new InvalidDataException("Error phrases cannot be blank.");
         }
+    }
+
+    private static void ValidateFingerprint(string value)
+    {
+        if (value.Length != 0 && (value.Length != 64 || !value.All(Uri.IsHexDigit)))
+            throw new InvalidDataException("Invalid certificate fingerprint.");
     }
 
     public AppConfig NetworkTemplate()
@@ -48,6 +65,7 @@ public sealed class AppConfig
         {
             g.Accounts.Clear(); g.DefaultAccountId = null; g.LastMonth = "";
             foreach (var p in g.Portals) p.CertificateSha256 = "";
+            g.UsageCertificateSha256 = "";
         }
         return template;
     }
@@ -55,6 +73,8 @@ public sealed class AppConfig
 
 public sealed class NetworkGroup
 {
+    public const string UrmiaUsagePortal = "https://gate1.urmia.ac.ir:8450/";
+
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = "New network";
     public bool Enabled { get; set; } = true;
@@ -64,6 +84,8 @@ public sealed class NetworkGroup
     public string TimeZoneId { get; set; } = "Iran Standard Time";
     public List<string> Ssids { get; set; } = [];
     public List<PortalEndpoint> Portals { get; set; } = [];
+    public string? UsagePortalUrl { get; set; }
+    public string UsageCertificateSha256 { get; set; } = "";
     public List<Account> Accounts { get; set; } = [];
     public string? DefaultAccountId { get; set; }
     public string LastMonth { get; set; } = "";
@@ -75,6 +97,9 @@ public sealed class NetworkGroup
     ];
     public List<string> CredentialPhrases { get; set; } =
     ["invalid username/password", "invalid username or password", "incorrect password", "wrong password", "invalid credentials", "نام کاربری یا رمز عبور اشتباه"];
+
+    internal static bool IsUrmiaLoginPortal(Uri portal) => portal.Port == 8090 &&
+        portal.IdnHost is "192.168.100.40" or "gate1.urmia.ac.ir";
 
     public string MonthAt(DateTimeOffset utc) => TimeZoneInfo.ConvertTime(utc, TimeZoneInfo.FindSystemTimeZoneById(TimeZoneId)).ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
     public DateTimeOffset NextReset(DateTimeOffset utc)
@@ -119,10 +144,13 @@ public sealed class Account
     public string ExhaustedMonth { get; set; } = "";
     public DateTimeOffset? QuotaNextProbeAt { get; set; }
     public bool NeedsAttention { get; set; }
+    public AccountUsage? LastUsage { get; set; }
     public bool Eligible(string month, DateTimeOffset? now = null) => Enabled && !NeedsAttention &&
         (string.IsNullOrEmpty(ExhaustedMonth) || string.CompareOrdinal(ExhaustedMonth, month) < 0 ||
          ExhaustedMonth == month && now is { } current && QuotaNextProbeAt is { } retry && current >= retry);
 }
+
+public sealed record AccountUsage(decimal? TotalMb, decimal UsedMb, decimal? RemainingMb, DateTimeOffset CheckedAt);
 
 public sealed record NetworkLink(string InterfaceId, string? Ssid, string LocalAddress, int InterfaceIndex, string Signature);
 public sealed record NetworkSnapshot(IReadOnlyList<NetworkLink> Links, bool LocationDenied = false, string? Problem = null);

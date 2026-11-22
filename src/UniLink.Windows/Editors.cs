@@ -76,6 +76,7 @@ internal sealed class GroupEditor : EditorWindow
     private readonly TextBox _name = new();
     private readonly RichTextBox _ssids = LinesBox();
     private readonly RichTextBox _urls = LinesBox();
+    private readonly TextBox _usageUrl = new() { PlaceholderText = "Optional HTTPS user portal" };
     private readonly CheckBox _enabled = new() { Text = "Group enabled", AutoSize = false };
     private readonly CheckBox _portalOnly = new() { Text = "Detect other networks by an approved portal", AutoSize = false };
     private readonly CheckBox _switch = new() { Text = "Use backup accounts", AutoSize = false };
@@ -93,6 +94,7 @@ internal sealed class GroupEditor : EditorWindow
         MinimumSize = new Size(616, 370);
         Result = group is null ? new NetworkGroup() : JsonSerializer.Deserialize<NetworkGroup>(JsonSerializer.Serialize(group))!;
         _name.Text = Result.Name; _ssids.Text = string.Join(Environment.NewLine, Result.Ssids); _urls.Text = string.Join(Environment.NewLine, Result.Portals.Select(p => p.Url));
+        _usageUrl.Text = Result.UsagePortalUrl ?? "";
         _enabled.Checked = Result.Enabled; _portalOnly.Checked = Result.MatchByPortal; _switch.Checked = Result.AutoSwitch;
         _heartbeat.Value = Result.HeartbeatSeconds; _timezone.Text = Result.TimeZoneId;
         _quota.Text = string.Join(Environment.NewLine, Result.QuotaPhrases); _credentials.Text = string.Join(Environment.NewLine, Result.CredentialPhrases);
@@ -114,6 +116,9 @@ internal sealed class GroupEditor : EditorWindow
                 Result.Name = _name.Text.Trim(); Result.Ssids = Lines(_ssids, false);
                 Result.Portals = Lines(_urls).Select(PortalEndpoint.NormalizeUrl).Distinct(StringComparer.OrdinalIgnoreCase).Select(url =>
                     Result.Portals.FirstOrDefault(p => p.Url.Equals(url, StringComparison.OrdinalIgnoreCase)) ?? new PortalEndpoint { Url = url }).ToList();
+                var usageUrl = string.IsNullOrWhiteSpace(_usageUrl.Text) ? "" : PortalEndpoint.NormalizeUrl(_usageUrl.Text);
+                if (usageUrl != Result.UsagePortalUrl) Result.UsageCertificateSha256 = "";
+                Result.UsagePortalUrl = usageUrl;
                 Result.Enabled = _enabled.Checked; Result.MatchByPortal = _portalOnly.Checked; Result.AutoSwitch = _switch.Checked;
                 Result.HeartbeatSeconds = (int)_heartbeat.Value; Result.TimeZoneId = _timezone.Text.Trim();
                 Result.QuotaPhrases = Lines(_quota); Result.CredentialPhrases = Lines(_credentials);
@@ -127,17 +132,23 @@ internal sealed class GroupEditor : EditorWindow
     private void BuildNetwork()
     {
         var panel = _tabs[0]; var name = Theme.Label("Group name"); var ssids = Theme.Label("Wi-Fi SSIDs — one per line"); var urls = Theme.Label("HTTPS portals — one per line");
-        foreach (var label in new[] { name, ssids, urls }) label.ForeColor = Theme.Muted;
-        panel.Controls.AddRange([name, _name, ssids, _ssids, urls, _urls, _enabled, _switch, _portalOnly]);
+        var usage = Theme.Label("Data portal");
+        foreach (var label in new[] { name, ssids, urls, usage }) label.ForeColor = Theme.Muted;
+        panel.Controls.AddRange([name, _name, ssids, _ssids, urls, _urls, usage, _usageUrl, _enabled, _switch, _portalOnly]);
         panel.Arrange = () =>
         {
             int P(int n) => Theme.Px(panel, n); var half = (panel.Width - P(12)) / 2; var nameW = P(100);
+            var compact = panel.Height < P(186);
             name.SetBounds(0, 0, nameW, P(28)); _name.SetBounds(nameW, 0, Math.Max(0, panel.Width - nameW), _name.PreferredHeight);
-            ssids.SetBounds(0, P(36), half, P(20)); urls.SetBounds(half + P(12), P(36), half, P(20));
-            var listH = Math.Min(P(160), Math.Max(P(48), panel.Height - P(120)));
-            _ssids.SetBounds(0, P(58), half, listH); _urls.SetBounds(half + P(12), P(58), half, listH);
-            var y = _ssids.Bottom + P(6); _enabled.SetBounds(0, y, half, P(26)); _switch.SetBounds(half + P(12), y, half, P(26));
-            _portalOnly.SetBounds(0, y + P(28), panel.Width, P(26));
+            var labelTop = P(compact ? 30 : 36); var listTop = P(compact ? 50 : 58);
+            ssids.SetBounds(0, labelTop, half, P(20)); urls.SetBounds(half + P(12), labelTop, half, P(20));
+            var listH = Math.Min(P(144), Math.Max(P(compact ? 30 : 36), panel.Height - P(compact ? 132 : 148)));
+            _ssids.SetBounds(0, listTop, half, listH); _urls.SetBounds(half + P(12), listTop, half, listH);
+            var dataTop = _ssids.Bottom + P(4);
+            usage.SetBounds(0, dataTop, nameW, P(24)); _usageUrl.SetBounds(nameW, dataTop, Math.Max(0, panel.Width - nameW), _usageUrl.PreferredHeight);
+            var y = dataTop + P(compact ? 24 : 28); var flagHeight = P(compact ? 24 : 26);
+            _enabled.SetBounds(0, y, half, flagHeight); _switch.SetBounds(half + P(12), y, half, flagHeight);
+            _portalOnly.SetBounds(0, y + flagHeight + P(2), panel.Width, flagHeight);
         };
     }
     private void BuildRules()
@@ -157,14 +168,22 @@ internal sealed class GroupEditor : EditorWindow
     }
     private void BuildCertificates()
     {
-        var panel = _tabs[2]; var hint = Theme.Label("Approved login servers. Select one to view its SHA-256 fingerprint.", 9); hint.ForeColor = Theme.Muted;
+        var panel = _tabs[2]; var hint = Theme.Label("Select a login or data server to view its SHA-256 fingerprint.", 9); hint.ForeColor = Theme.Muted;
         var forget = Theme.Button("Forget certificate"); forget.Enabled = false;
         _pins.SelectedIndexChanged += (_, _) =>
         {
             forget.Enabled = _pins.SelectedIndex >= 0;
-            _pinDetail.Text = _pins.SelectedItem is Choice c ? Result.Portals.First(p => p.Id == c.Id).CertificateSha256 : "";
+            _pinDetail.Text = _pins.SelectedItem is Choice c
+                ? c.Id == Result.Id ? Result.UsageCertificateSha256 : Result.Portals.First(p => p.Id == c.Id).CertificateSha256
+                : "";
         };
-        forget.Click += (_, _) => { if (_pins.SelectedItem is Choice c) { Result.Portals.First(p => p.Id == c.Id).CertificateSha256 = ""; RefreshPins(); } };
+        forget.Click += (_, _) =>
+        {
+            if (_pins.SelectedItem is not Choice c) return;
+            if (c.Id == Result.Id) Result.UsageCertificateSha256 = "";
+            else Result.Portals.First(p => p.Id == c.Id).CertificateSha256 = "";
+            RefreshPins();
+        };
         panel.Controls.AddRange([hint, _pins, _pinDetail, forget]);
         panel.Arrange = () =>
         {
@@ -185,6 +204,8 @@ internal sealed class GroupEditor : EditorWindow
     private void RefreshPins()
     {
         _pins.Items.Clear(); foreach (var p in Result.Portals) _pins.Items.Add(new Choice(p.Id, p.Url + (p.CertificateSha256.Length > 0 ? "  — Approved" : "  — Not approved")));
+        if (Result.UsagePortalUrl is { Length: > 0 } url)
+            _pins.Items.Add(new Choice(Result.Id, "Data portal — " + url + (Result.UsageCertificateSha256.Length > 0 ? "  — Approved" : "  — Not approved")));
         _pinDetail.Text = ""; if (_pins.Items.Count > 0) _pins.SelectedIndex = 0;
     }
     private static RichTextBox LinesBox() => new() { DetectUrls = false, ScrollBars = RichTextBoxScrollBars.Vertical, AcceptsTab = false };
@@ -193,7 +214,9 @@ internal sealed class GroupEditor : EditorWindow
 
 internal sealed class CertificateDialog : EditorWindow
 {
-    public CertificateDialog(CertificateInfo cert) : base("Review portal certificate", cert.Changed ? "The saved certificate has changed. Review before approving." : "Approve the expected university server before signing in.", new Size(620, 400))
+    public CertificateDialog(CertificateInfo cert, bool usage = false) :
+        base(usage ? "Review data portal certificate" : "Review portal certificate",
+            cert.Changed ? "The saved certificate has changed. Review before approving." : "Approve the expected university server before signing in.", new Size(620, 400))
     {
         MinimumSize = new Size(536, 370);
         var layout = new LayoutSurface { Dock = DockStyle.Fill }; Body.Controls.Add(layout);
@@ -204,7 +227,10 @@ internal sealed class CertificateDialog : EditorWindow
         inputs[4].Font = new Font("Consolas", 9);
         foreach (var label in labels) label.ForeColor = Theme.Muted;
         layout.Controls.AddRange(labels); layout.Controls.AddRange(inputs);
-        var hint = Theme.Label("Compare this SHA-256 fingerprint with the university login page or university IT before approving.", 9); hint.ForeColor = Theme.Muted; layout.Controls.Add(hint);
+        var hint = Theme.Label(usage
+            ? "Compare this SHA-256 fingerprint with the data portal or university IT before approving."
+            : "Compare this SHA-256 fingerprint with the university login page or university IT before approving.", 9);
+        hint.ForeColor = Theme.Muted; layout.Controls.Add(hint);
         layout.Arrange = () =>
         {
             int P(int n) => Theme.Px(layout, n); var p = P(16); var labelW = P(80); var y = P(4); var row = Math.Max(P(26), Math.Min(P(32), (layout.Height - P(96)) / 4));

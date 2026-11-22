@@ -6,15 +6,15 @@ UniLink signs you in to university captive portals and keeps your session connec
 
 ## Download
 
-The current Windows executable, macOS installer, and Android APK are available in one release. [Download the release](https://github.com/metasina3/UniLink/releases/tag/bundle-2026.11.21)
+The current Windows executable, macOS installer, and Android APK are available in one release. [Download the release](https://github.com/metasina3/UniLink/releases/tag/bundle-2026.11.22)
 
 | Platform | Version | Download | Guide |
 | --- | --- | --- | --- |
-| Windows 10 (2004+) and Windows 11, x64 | 1.3.1 | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink.exe) | [Windows user guide (Persian)](docs/README_FA.html) |
-| macOS 12+ | 1.3.1 | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink-1.3.1-macOS.zip) | [macOS guide](docs/MACOS_GUIDE.md) |
-| Android 8+ | 1.14.0 | [APK](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.21/UniLink-v1.14.0.apk) | [Android guide](src/UniLink.Android/README.md) |
+| Windows 10 (2004+) and Windows 11, x64 | 1.4.0 | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink.exe) | [Windows user guide (Persian)](docs/README_FA.html) |
+| macOS 12+ | 1.3.1 | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.zip) | [macOS guide](docs/MACOS_GUIDE.md) |
+| Android 8+ | 1.14.0 | [APK](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-v1.14.0.apk) | [Android guide](src/UniLink.Android/README.md) |
 
-- **Windows** — Run `UniLink.exe` directly. The standalone executable includes the .NET runtime. To update, exit the previous app before replacing its executable.
+- **Windows** — Run `UniLink.exe` directly. The standalone executable includes the .NET runtime. To update, exit the previous app before replacing its executable. Connection shows the active account’s data left out of its total allowance. Use Check data in Accounts to refresh a saved account.
 - **macOS** — Open the DMG and drag `UniLink.app` to Applications.
 - **Android** — Open the APK to install it.
 
