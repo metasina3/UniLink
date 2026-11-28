@@ -162,6 +162,7 @@ class Engine(private val ctx: Context, private val store: Store) {
         retryAt = 0L
         // Show the effect of the tap at once; the loop may still be finishing an earlier attempt.
         _status.update { it.copy(phase = Phase.Connecting, title = str(R.string.st_signing_in), detail = it.groupName ?: "", pendingCert = null) }
+        UniLinkWidget.refresh(ctx)
         wake.trySend(Unit)
     }
 

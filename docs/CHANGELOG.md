@@ -1,3 +1,9 @@
+# Android 1.14.1 (upstream integration)
+
+- Fix the home-screen widget Connect/Pause action on recent Android versions; refresh immediately, open the Wi-Fi panel when needed and show the reason when campus Wi-Fi is unavailable.
+- Preserve the unified repository's Android update-check logic and regression tests.
+- See the [Android changelog](../src/UniLink.Android/CHANGELOG.md) and [sync record](ANDROID_SYNC.md).
+
 # Windows 1.4.0
 
 - Show the connected account's remaining data and total allowance in Connection.

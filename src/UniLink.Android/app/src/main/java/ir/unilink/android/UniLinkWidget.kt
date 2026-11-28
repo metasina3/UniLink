@@ -3,7 +3,6 @@ package ir.unilink.android
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -20,8 +19,6 @@ class UniLinkWidget : AppWidgetProvider() {
     }
 
     companion object {
-        const val ACTION_TOGGLE = "ir.unilink.android.WIDGET_TOGGLE"
-
         fun refresh(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, UniLinkWidget::class.java))
@@ -48,9 +45,10 @@ class UniLinkWidget : AppWidgetProvider() {
                 else -> st.detail
             }
 
-            val toggle = PendingIntent.getBroadcast(
+            val toggle = PendingIntent.getActivity(
                 context, 0,
-                Intent(context, WidgetActionReceiver::class.java).setAction(ACTION_TOGGLE),
+                Intent(context, WidgetActionActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_NO_HISTORY),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             val open = PendingIntent.getActivity(
@@ -75,17 +73,32 @@ class UniLinkWidget : AppWidgetProvider() {
     }
 }
 
-/** Not exported: only the widget's own PendingIntent can reach it. */
-class WidgetActionReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != UniLinkWidget.ACTION_TOGGLE) return
-        val app = context.applicationContext as UniLinkApp
-        val phase = app.engine.status.value.phase
+/**
+ * The widget button opens this invisible activity, does the action and closes at once. An activity
+ * started from a widget tap may always start the keep-alive service and open the Wi-Fi switch, which a
+ * plain broadcast receiver cannot do reliably on recent Android versions (the button then looked dead).
+ */
+class WidgetActionActivity : android.app.Activity() {
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        val app = applicationContext as UniLinkApp
+        val st = app.engine.status.value
+        val phase = st.phase
+        // No campus Wi-Fi to sign in to: say why, so the tap never looks dead.
+        if (phase == Phase.WaitingWifi || phase == Phase.AccountNeeded) {
+            android.widget.Toast.makeText(this, st.title + (if (st.detail.isNotBlank()) ": " + st.detail else ""), android.widget.Toast.LENGTH_LONG).show()
+        }
         if (phase == Phase.Connected || phase == Phase.Connecting) {
             app.engine.pauseAndSignOut()
         } else {
-            runCatching { KeepAliveService.start(context) }
+            runCatching { KeepAliveService.start(this) }
             app.engine.connectNow()
+            // Wi-Fi is off: open the system switch so one more tap joins campus Wi-Fi.
+            if (!ir.unilink.android.ui.wifiRadioOn(this)) ir.unilink.android.ui.openWifiPanel(this)
         }
+        UniLinkWidget.refresh(this)
+        finish()
+        @Suppress("DEPRECATION")
+        overridePendingTransition(0, 0)
     }
 }

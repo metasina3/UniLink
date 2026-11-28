@@ -1,0 +1,1 @@
+Fix: the home-screen widget Connect/Pause button now works reliably.

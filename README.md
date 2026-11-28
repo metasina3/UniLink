@@ -1,24 +1,45 @@
+<div align="center">
+
+<img src="src/UniLink.Windows/app.svg" width="92" alt="UniLink logo">
+
 # UniLink
 
-[Read in Persian](README_FA.md)
+**One connection. Three platforms.**
+
+Automatic university captive portal sign-in and session maintenance.
+
+[![Windows CI](https://github.com/metasina3/UniLink/actions/workflows/windows.yml/badge.svg)](https://github.com/metasina3/UniLink/actions/workflows/windows.yml)
+[![macOS CI](https://github.com/metasina3/UniLink/actions/workflows/macos.yml/badge.svg)](https://github.com/metasina3/UniLink/actions/workflows/macos.yml)
+[![Android CI](https://github.com/metasina3/UniLink/actions/workflows/android.yml/badge.svg)](https://github.com/metasina3/UniLink/actions/workflows/android.yml)
+
+[Downloads](#download) · [Documentation](docs/README.md) · [فارسی](README_FA.md) · [Releases](https://github.com/metasina3/UniLink/releases)
+
+</div>
 
 UniLink signs you in to university captive portals and keeps your session connected. It supports Windows, macOS, and Android. The default campus network is Urmia University's `UUWN`.
 
 ## Download
 
-The current Windows executable, macOS installer, and Android APK are available in one release. [Download the release](https://github.com/metasina3/UniLink/releases/tag/bundle-2026.11.22)
+Choose your platform below. [Browse all releases](https://github.com/metasina3/UniLink/releases) or [open the latest bundle](https://github.com/metasina3/UniLink/releases/latest). Android 1.14.1 is also available directly from its developer.
 
 | Platform | Version | Download | Guide |
 | --- | --- | --- | --- |
 | Windows 10 (2004+) and Windows 11, x64 | 1.4.0 | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink.exe) | [Windows user guide (Persian)](docs/README_FA.html) |
 | macOS 12+ | 1.3.1 | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.zip) | [macOS guide](docs/MACOS_GUIDE.md) |
-| Android 8+ | 1.14.0 | [APK](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-v1.14.0.apk) | [Android guide](src/UniLink.Android/README.md) |
+| Android 8+ | 1.14.1 | [APK](https://github.com/Mrzzan05/UniLink-Android/releases/download/v1.14.1/UniLink-v1.14.1.apk) | [Android guide](src/UniLink.Android/README.md) |
 
 - **Windows** — Run `UniLink.exe` directly. The standalone executable includes the .NET runtime. To update, exit the previous app before replacing its executable. Connection shows the active account’s data left out of its total allowance. Use Check data in Accounts to refresh a saved account.
 - **macOS** — Open the DMG and drag `UniLink.app` to Applications.
-- **Android** — Open the APK to install it.
+- **Android** — Open the signed APK to install or update. Version 1.14.1 fixes the home-screen widget Connect/Pause action. [Release notes](https://github.com/Mrzzan05/UniLink-Android/releases/tag/v1.14.1).
 
 [All releases](https://github.com/metasina3/UniLink/releases) · [Earlier Android releases](https://github.com/Mrzzan05/UniLink-Android/releases)
+
+## Highlights
+
+- Automatic portal sign-in and session maintenance.
+- Multiple saved accounts and account rotation on supported editions.
+- Physical-interface routing and portal certificate verification (see platform documentation for limitations).
+- Remaining-data display on Windows and Android.
 
 ## Source and builds
 
@@ -31,6 +52,16 @@ All editions live on `main`. Each has its own source, build, and release version
 | Android | [Gradle project](src/UniLink.Android) | Run `./gradlew assembleDebug` in `src/UniLink.Android` with JDK 17 and Android SDK 35 |
 
 [Release instructions](docs/RELEASING.md) · [Protocol reference](docs/PROTOCOL.md) · [Windows network behavior](docs/NETWORK_BEHAVIOR.md)
+
+## Project documentation
+
+| Resource | Purpose |
+| --- | --- |
+| [Documentation index](docs/README.md) | Guides, protocol, testing and release procedures |
+| [Windows changelog](docs/CHANGELOG.md) | Desktop release history and Android update pointer |
+| [Android changelog](src/UniLink.Android/CHANGELOG.md) | Android release history |
+| [Android synchronization](docs/ANDROID_SYNC.md) | Upstream source, local integration and signed APK provenance |
+| [Issues](https://github.com/metasina3/UniLink/issues) | Bug reports and feature requests |
 
 ## Contributors
 

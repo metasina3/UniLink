@@ -20,4 +20,4 @@ Update the download links in the [English README](../README.md) and [Persian REA
 
 Use the original private Android release key so the APK can update existing installs. The maintainers configure `UNILINK_KEYSTORE_B64`, `UNILINK_KEYSTORE_PASSWORD`, `UNILINK_KEY_ALIAS`, and `UNILINK_KEY_PASSWORD` in the repository's Actions secrets. See the [Android signing notes](../src/UniLink.Android/SECURITY.md).
 
-The initial Android release in this repository mirrors the upstream v1.14.0 APK and checksum. The [upstream release archive](https://github.com/Mrzzan05/UniLink-Android/releases) also serves existing APKs that check that repository for updates.
+Android releases may also mirror the original signed upstream APK and checksum without rebuilding or re-signing. Verify the SHA-256 digest and signing certificate against upstream, record the exact upstream commit as corresponding source, and keep the integrated source's update-check adaptations documented. See [Android synchronization](ANDROID_SYNC.md). The [upstream release archive](https://github.com/Mrzzan05/UniLink-Android/releases) also serves existing APKs that check that repository for updates.

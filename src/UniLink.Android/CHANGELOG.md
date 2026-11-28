@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.14.1
+- Fix: the **Connect / Pause button on the home-screen widget** did nothing on some phones. It now runs through a tiny invisible screen that is always allowed to start the keep-alive service, opens the Wi-Fi switch when Wi-Fi is off, and shows why when there is no campus Wi-Fi. The widget also updates the moment you tap.
+
 ## 1.14.0
 - New: **Use this account** button on every usable account card. It makes the account the default, signs out of the one in use, signs in with it and opens the Connection tab. It tries only that account: if its password is rejected or its data is used up, the Connection tab says so instead of silently using another account. Settings has "Switch right after choosing an account" (on by default); when off, the button only makes the account the default.
 - New: the **Connection tab** now shows a red "Password rejected" card whenever an enabled account has a rejected password (also while another account is signed in), with a button to the Accounts tab. Accounts with a rejected password get a red **Fix password** button.

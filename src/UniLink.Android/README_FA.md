@@ -4,7 +4,7 @@
 
 **همیشه به وای‌فای دانشگاه وصل بمان؛ خودکار، پایدار و بدون باز کردن مرورگر.**
 
-[**دانلود آخرین APK**](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) · [English](README.md) · [تغییرات نسخه‌ها](CHANGELOG.md)
+[**دانلود آخرین APK**](https://github.com/Mrzzan05/UniLink-Android/releases/tag/v1.14.1) · [English](README.md) · [تغییرات نسخه‌ها](CHANGELOG.md)
 
 <img src="docs/showcase.png" alt="تصاویر UniLink" width="900">
 
@@ -47,7 +47,7 @@ UniLink وارد پرتال‌های Sophos / Cyberoam می‌شود (برای �
 
 ## نصب
 
-1. [آخرین Release](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.0) را روی گوشی باز کن و فایل `UniLink-vX.Y.Z.apk` را دانلود کن.
+1. [آخرین Release](https://github.com/Mrzzan05/UniLink-Android/releases/tag/v1.14.1) را روی گوشی باز کن و فایل `UniLink-vX.Y.Z.apk` را دانلود کن.
 2. فایل را باز کن و اگر اندروید خواست، **Install unknown apps** را اجازه بده.
 3. این اجازه‌ها را بده: **Location** (اندروید نام وای‌فای را فقط به برنامه‌هایی می‌دهد که آن را دارند؛ موقعیت هرگز ذخیره یا ارسال نمی‌شود)، **Notifications** و **Unrestricted battery** تا اندروید سرویس را متوقف نکند.
 4. تب **Accounts** ← **+** ← شمارهٔ دانشجویی و رمز را وارد کن.
@@ -126,7 +126,7 @@ APK انتشار با کلید خصوصی پروژه امضا می‌شود که
 
 ## توسعه‌دهنده
 
-نسخهٔ اندروید را مهران ([@Mrzzan05](https://github.com/Mrzzan05)) توسعه داده است. نسخه‌های قبلی در [آرشیو ریپوی اندروید](https://github.com/Mrzzan05/UniLink-Android/releases) در دسترس‌اند.
+نسخهٔ اندروید را توسعه‌دهندهٔ اندروید ([@Mrzzan05](https://github.com/Mrzzan05)) توسعه داده است. نسخه‌های قبلی در [آرشیو ریپوی اندروید](https://github.com/Mrzzan05/UniLink-Android/releases) در دسترس‌اند.
 
 ## مجوز
 
