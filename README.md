@@ -20,13 +20,13 @@ UniLink signs you in to university captive portals and keeps your session connec
 
 ## Download
 
-Choose your platform below. [Browse all releases](https://github.com/metasina3/UniLink/releases) or [open the latest bundle](https://github.com/metasina3/UniLink/releases/latest). Android 1.14.1 is also available directly from its developer.
+Choose your platform below. [Browse all releases](https://github.com/metasina3/UniLink/releases) or [open the latest bundle](https://github.com/metasina3/UniLink/releases/latest). All three current platform downloads are mirrored in the unified bundle.
 
 | Platform | Version | Download | Guide |
 | --- | --- | --- | --- |
-| Windows 10 (2004+) and Windows 11, x64 | 1.4.0 | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink.exe) | [Windows user guide (Persian)](docs/README_FA.html) |
-| macOS 12+ | 1.3.1 | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.22/UniLink-1.3.1-macOS.zip) | [macOS guide](docs/MACOS_GUIDE.md) |
-| Android 8+ | 1.14.1 | [APK](https://github.com/Mrzzan05/UniLink-Android/releases/download/v1.14.1/UniLink-v1.14.1.apk) | [Android guide](src/UniLink.Android/README.md) |
+| Windows 10 (2004+) and Windows 11, x64 | 1.4.0 | [UniLink.exe](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.28/UniLink.exe) | [Windows user guide (Persian)](docs/README_FA.html) |
+| macOS 12+ | 1.3.1 | [DMG](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.28/UniLink-1.3.1-macOS.dmg) · [ZIP](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.28/UniLink-1.3.1-macOS.zip) | [macOS guide](docs/MACOS_GUIDE.md) |
+| Android 8+ | 1.14.1 | [APK](https://github.com/metasina3/UniLink/releases/download/bundle-2026.11.28/UniLink-v1.14.1.apk) | [Android guide](src/UniLink.Android/README.md) |
 
 - **Windows** — Run `UniLink.exe` directly. The standalone executable includes the .NET runtime. To update, exit the previous app before replacing its executable. Connection shows the active account’s data left out of its total allowance. Use Check data in Accounts to refresh a saved account.
 - **macOS** — Open the DMG and drag `UniLink.app` to Applications.

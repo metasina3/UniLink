@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
 
-[**Download the latest APK**](https://github.com/Mrzzan05/UniLink-Android/releases/tag/v1.14.1) · [فارسی](README_FA.md) · [Changelog](CHANGELOG.md)
+[**Download the latest APK**](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.1) · [فارسی](README_FA.md) · [Changelog](CHANGELOG.md)
 
 <img src="docs/showcase.png" alt="UniLink screenshots" width="900">
 
@@ -50,7 +50,7 @@ Phones close browser tabs, sleep the screen and often run a VPN, and each of tho
 
 ## Install
 
-1. Open the [latest release](https://github.com/Mrzzan05/UniLink-Android/releases/tag/v1.14.1) on your phone and download `UniLink-vX.Y.Z.apk`.
+1. Open the [latest release](https://github.com/metasina3/UniLink/releases/tag/android-v1.14.1) on your phone and download `UniLink-vX.Y.Z.apk`.
 2. Open the file and allow **Install unknown apps** if Android asks.
 3. Allow **Location** (Android only reveals the Wi-Fi name to apps that have it; location is never stored or sent), **Notifications**, and **Unrestricted battery** so Android doesn't pause the service.
 4. **Accounts** tab → **+** → add your student number and password.
